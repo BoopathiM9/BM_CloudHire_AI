@@ -1,0 +1,16 @@
+# TECHNICAL COMPETENCY BENCHMARK: CLOUD DEVOPS & SRE
+
+## 1. Containerization & Kubernetes (EKS / Docker)
+- Core Competency: Creating hardened multi-stage Docker images, configuring Kubernetes pods, services, ingress, and deployments.
+- Verification Criteria: Experience with Helm charts, container security scanning, and automated rollouts.
+
+## 2. Infrastructure as Code (Terraform / AWS CDK)
+- Core Competency: Declarative infrastructure provisioning using Terraform modules or AWS CDK in Python/TypeScript.
+- Verification Criteria: Remote state management with S3 and DynamoDB state locks, plan/apply CI pipelines, and Drift detection.
+
+## 3. Continuous Integration & Continuous Delivery (CI/CD)
+- Core Competency: Automated build, test, and release pipelines using GitHub Actions, GitLab CI, or AWS CodePipeline.
+- Verification Criteria: Zero-downtime blue/green or canary deployment automation with rollback thresholds.
+
+## 4. Observability & SRE Metrics
+- Core Competency: Monitoring service level objectives (SLOs) using CloudWatch metrics, alarms, and Prometheus.

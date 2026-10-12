@@ -1,0 +1,18 @@
+# TECHNICAL COMPETENCY BENCHMARK: CLOUD & FULL-STACK DEVELOPMENT
+
+## 1. AWS Lambda & Serverless Microservices
+- Core Competency: Designing event-driven serverless architectures with AWS Lambda, EventBridge, and SQS/SNS.
+- Verification Criteria: Demonstrates stateless function execution, handling cold starts, IAM least privilege role configuration, and environment variable management.
+- Anti-Patterns / Gaps: Monolithic deployments or functions depending on persistent local disk storage.
+
+## 2. Amazon DynamoDB Single-Table Design
+- Core Competency: Modeling NoSQL schemas using partition keys (PK) and sort keys (SK), Global Secondary Indexes (GSIs), and sparse indexes.
+- Verification Criteria: Enforces atomic conditional writes (ConditionExpressions) to prevent race conditions. Uses batch write operations and query operations instead of table scans.
+
+## 3. Python Microservices & REST APIs
+- Core Competency: Clean modular backend code using Python, boto3 SDK, Pydantic validation, or FastAPI framework.
+- Verification Criteria: Production error handling, JSON serialization with Decimal support, and structured logging.
+
+## 4. Modern React Frontends
+- Core Competency: Single-Page Application (SPA) architecture with React, state management, hooks, and responsive design.
+- Verification Criteria: Client-side deduplication, presigned URL uploads to S3, and clean RESTful API integration.

@@ -1,0 +1,13 @@
+# TECHNICAL COMPETENCY BENCHMARK: GENERATIVE AI & LLM SOLUTIONS
+
+## 1. Amazon Bedrock Foundation Model Orchestration
+- Core Competency: Invoking Bedrock models (Anthropic Claude, Amazon Nova, Titan) using Converse API and InvokeModel.
+- Verification Criteria: Handling prompt engineering patterns, token limits, temperature/top-p tuning, and structured JSON output schemas.
+
+## 2. Retrieval-Augmented Generation (RAG) & Vector Stores
+- Core Competency: Chunking strategies, vector embeddings (Amazon Titan Multimodal/Text), semantic search, and hybrid retrieval.
+- Verification Criteria: Experience grounding foundation models against private knowledge bases (Bedrock Knowledge Bases, OpenSearch Serverless, FAISS, Pinecone).
+
+## 3. LLM Application Frameworks
+- Core Competency: LangChain, LlamaIndex, or native Python orchestration for chaining tasks, memory, and tool calling.
+- Verification Criteria: Guardrails, latency reduction, and deterministic post-processing of model outputs.

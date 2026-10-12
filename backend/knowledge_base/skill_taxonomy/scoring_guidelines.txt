@@ -1,0 +1,13 @@
+# RECRUITMENT SCORING GUIDELINES & FAIRNESS DIRECTIVES
+
+## 1. 100-Point Scoring Weights
+- Required Skills Match: 40 Points (Core mandatory technical competencies)
+- Relevant Experience: 25 Points (Demonstrated years in relevant domain)
+- Relevant Production Projects: 20 Points (Verified portfolio applications)
+- Preferred Skills Match: 10 Points (Nice-to-have bonus competencies)
+- Education & Industry Certifications: 5 Points (Accredited degree or active certifications like AWS Solutions Architect, CKA, etc.)
+
+## 2. Fairness & Compliance Rules
+- Zero Protected Attributes: Scoring must strictly exclude age, gender, ethnicity, race, religion, location, or photographs.
+- Evidence Distinction: Distinguish clearly between a skill that is demonstrably missing vs. a skill simply not mentioned in the resume text.
+- Human Review Support: Explanations must provide factual rationale to empower human recruiters, not make autonomous employment decisions.
