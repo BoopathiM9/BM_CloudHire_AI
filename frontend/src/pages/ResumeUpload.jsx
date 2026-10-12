@@ -8,7 +8,11 @@ import {
   Search, 
   UserCheck, 
   UserX,
-  UploadCloud
+  UploadCloud,
+  Send,
+  FolderOpen,
+  Trash2,
+  Loader2
 } from "lucide-react";
 
 export default function ResumeUpload() {
@@ -19,7 +23,16 @@ export default function ResumeUpload() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL"); // ALL | AVAILABLE | ASSIGNED
   const [isProcessing, setIsProcessing] = useState(false);
+  const [stagedFiles, setStagedFiles] = useState([]);
   const fileInputRef = useRef(null);
+
+  // Formats file sizes in KB or MB
+  const formatFileSize = (bytes) => {
+    if (!bytes && bytes !== 0) return "0 KB";
+    const kb = bytes / 1024;
+    if (kb < 1024) return `${kb.toFixed(1)} KB`;
+    return `${(kb / 1024).toFixed(2)} MB`;
+  };
 
   // Computes browser-native SHA-256 hash for document integrity and deduplication
   const calculateSHA256 = async (file) => {
@@ -29,21 +42,58 @@ export default function ResumeUpload() {
     return "hash_" + hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
   };
 
-  const handleFiles = async (files) => {
-    if (!files || files.length === 0) return;
-    const fileList = Array.from(files);
+  // Adds newly selected or dropped files into the Staging Queue
+  const onFileSelect = (newFiles) => {
+    if (!newFiles || newFiles.length === 0) return;
+    const fileList = Array.from(newFiles);
+    const valid = [];
+    const errors = [];
+
+    fileList.forEach(file => {
+      const ext = file.name.split(".").pop().toLowerCase();
+      if (ext === "pdf" || ext === "docx") {
+        valid.push(file);
+      } else {
+        errors.push(`Skipped "${file.name}": Only .pdf and .docx documents are accepted.`);
+      }
+    });
+
+    if (errors.length > 0) {
+      setUploadStatus({
+        type: "warning",
+        message: errors.join(" | ")
+      });
+    }
+
+    // Merge into staged queue without duplicating same filename
+    setStagedFiles(prev => {
+      const existingNames = new Set(prev.map(p => p.name));
+      const toAdd = valid.filter(v => !existingNames.has(v.name));
+      return [...prev, ...toAdd];
+    });
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const removeStagedFile = (fileName) => {
+    setStagedFiles(prev => prev.filter(f => f.name !== fileName));
+  };
+
+  const clearStagedQueue = () => {
+    setStagedFiles([]);
+  };
+
+  // Triggered by the prominent "Send & Process Resumes" button
+  const handleUploadAndProcess = async () => {
+    if (stagedFiles.length === 0) return;
 
     setIsProcessing(true);
     let successCount = 0;
     const errors = [];
 
-    for (const file of fileList) {
-      const ext = file.name.split(".").pop().toLowerCase();
-      if (ext !== "pdf" && ext !== "docx") {
-        errors.push(`Skipped "${file.name}": Only .pdf and .docx documents are accepted.`);
-        continue;
-      }
-
+    for (const file of stagedFiles) {
       try {
         const hash = await calculateSHA256(file);
         
@@ -69,7 +119,7 @@ export default function ResumeUpload() {
 
         successCount++;
       } catch (err) {
-        if (err.message.includes("Duplicate resume")) {
+        if (err.message && err.message.includes("Duplicate resume")) {
           errors.push(err.message);
         } else {
           errors.push(`Parsing failed for "${file.name}": ${err.message}`);
@@ -78,6 +128,7 @@ export default function ResumeUpload() {
     }
 
     setIsProcessing(false);
+    setStagedFiles([]); // Reset staging queue upon completion
 
     if (errors.length > 0 && successCount === 0) {
       setUploadStatus({
@@ -101,7 +152,7 @@ export default function ResumeUpload() {
     e.preventDefault();
     setDragOver(false);
     if (e.dataTransfer.files) {
-      handleFiles(e.dataTransfer.files);
+      onFileSelect(e.dataTransfer.files);
     }
   };
 
@@ -158,7 +209,7 @@ export default function ResumeUpload() {
           multiple 
           accept=".pdf,.docx" 
           style={{ display: "none" }}
-          onChange={(e) => handleFiles(e.target.files)}
+          onChange={(e) => onFileSelect(e.target.files)}
         />
         <div className="dropzone-icon-circle">
           <UploadCloud size={36} className="dropzone-svg" />
@@ -167,7 +218,7 @@ export default function ResumeUpload() {
           {isProcessing ? "Processing & Extracting Resumes..." : "Drop Candidate Resumes Here"}
         </h3>
         <p className="dropzone-instructions">
-          Drag and drop 10–20 resumes in one session, or click to browse files from your computer.
+          Drag and drop 10–20 resumes in one session, or click Browse below to select files from your computer.
         </p>
 
         <div className="dropzone-features">
@@ -177,7 +228,96 @@ export default function ResumeUpload() {
           <span className="feature-chip">Verified Deduplication</span>
           <span className="feature-chip">Secure Resume Storage</span>
         </div>
+
+        <div>
+          <button 
+            type="button" 
+            className="btn-browse-files"
+            onClick={(e) => {
+              e.stopPropagation();
+              fileInputRef.current?.click();
+            }}
+          >
+            <FolderOpen size={16} />
+            <span>Browse Resumes from Device</span>
+          </button>
+        </div>
       </div>
+
+      {/* Selected Resumes Staging Queue & Send Button */}
+      {stagedFiles.length > 0 && (
+        <div className="staged-queue-card">
+          <div className="staged-header">
+            <div className="staged-title-group">
+              <FileText size={18} className="text-primary" />
+              <span className="staged-title">
+                Ready for AI Ingestion ({stagedFiles.length} file{stagedFiles.length > 1 ? "s" : ""})
+              </span>
+              <span className="staged-total-size">
+                Total: {formatFileSize(stagedFiles.reduce((acc, f) => acc + f.size, 0))}
+              </span>
+            </div>
+
+            <div className="staged-actions">
+              <button 
+                type="button" 
+                className="btn-clear-queue"
+                onClick={clearStagedQueue}
+                disabled={isProcessing}
+              >
+                <Trash2 size={14} />
+                <span>Clear Queue</span>
+              </button>
+
+              <button 
+                type="button" 
+                className="btn-send-resumes"
+                onClick={handleUploadAndProcess}
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 size={16} className="spinner-icon" />
+                    <span>Analyzing & Parsing Resumes...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send size={16} />
+                    <span>Send & Process Resumes ({stagedFiles.length})</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="staged-files-list">
+            {stagedFiles.map((file, idx) => {
+              const ext = file.name.split(".").pop().toUpperCase();
+              return (
+                <div key={file.name + idx} className="staged-file-item">
+                  <div className="staged-file-info">
+                    <span className={`file-badge file-badge-${ext.toLowerCase()}`}>{ext}</span>
+                    <span className="staged-file-name" title={file.name}>{file.name}</span>
+                    <span className="staged-file-size">({formatFileSize(file.size)})</span>
+                  </div>
+                  <button 
+                    type="button"
+                    className="btn-remove-staged-file" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeStagedFile(file.name);
+                    }}
+                    disabled={isProcessing}
+                    title="Remove from queue"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Feedback Banner */}
       {uploadStatus && (
