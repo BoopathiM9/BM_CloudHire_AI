@@ -170,17 +170,20 @@ body {
 }
 
 .system-status-indicator {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   background: #151f38;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.3rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.35rem 0.8rem;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
   color: #e2e8f0;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .status-dot {
