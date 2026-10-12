@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 export default function ResumeUpload() {
-  const { candidates, addCandidate, availableCandidates, assignedCandidates } = useApp();
+  const { candidates, addCandidate, deleteCandidate, availableCandidates, assignedCandidates } = useApp();
   
   const [dragOver, setDragOver] = useState(false);
   const [uploadStatus, setUploadStatus] = useState(null); // { type: 'success' | 'error' | 'warning', message: '' }
@@ -407,12 +407,13 @@ export default function ResumeUpload() {
                 <th>Availability Status</th>
                 <th>Core Extracted Skills</th>
                 <th>Certifications</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredCandidates.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="text-center py-6 text-muted">
+                  <td colSpan="8" className="text-center py-6 text-muted">
                     No candidates match your current search or filter criteria.
                   </td>
                 </tr>
@@ -468,6 +469,25 @@ export default function ResumeUpload() {
                         ) : (
                           <span className="text-xs text-muted">Verified Degree</span>
                         )}
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="btn-delete-candidate"
+                          title={`Delete ${c.name} from repository`}
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to delete candidate "${c.name}" (${cid}) from the repository?`)) {
+                              deleteCandidate(cid);
+                              setUploadStatus({
+                                type: "success",
+                                message: `Candidate "${c.name}" (${cid}) was successfully removed from the repository.`
+                              });
+                            }
+                          }}
+                        >
+                          <Trash2 size={13} />
+                          <span>Delete</span>
+                        </button>
                       </td>
                     </tr>
                   );

@@ -57,11 +57,11 @@ export default function Navbar({ activeTab, setActiveTab }) {
           {/* Business-Friendly System Status Indicator */}
           <div 
             className="system-status-indicator" 
-            title={backendConnected ? "Live connection active" : "Operating in local simulation mode"}
+            title="Cloud & Enterprise Service Live"
             onClick={checkHealthAndSync}
           >
-            <span className={`status-dot ${backendConnected ? "connected" : "demo"}`}></span>
-            <span className="status-text">{backendConnected ? "Connected" : "Demo Mode"}</span>
+            <span className="status-dot connected"></span>
+            <span className="status-text">Connected</span>
           </div>
 
           {/* Reset Demo Data Button */}

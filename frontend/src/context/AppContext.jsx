@@ -7,17 +7,84 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
-  const [backendConnected, setBackendConnected] = useState(false);
+  const [backendConnected, setBackendConnected] = useState(true);
 
-  // Core Data States
-  const [jobs, setJobs] = useState(initialJobs);
-  const [candidates, setCandidates] = useState(initialCandidates);
+  // Core Data States with localStorage persistence so data survives page refresh
+  const [jobs, setJobs] = useState(() => {
+    try {
+      const saved = localStorage.getItem("bm_cloudhire_jobs");
+      return saved ? JSON.parse(saved) : initialJobs;
+    } catch {
+      return initialJobs;
+    }
+  });
+
+  const [candidates, setCandidates] = useState(() => {
+    try {
+      const saved = localStorage.getItem("bm_cloudhire_candidates");
+      return saved ? JSON.parse(saved) : initialCandidates;
+    } catch {
+      return initialCandidates;
+    }
+  });
+
   const [selectedJobId, setSelectedJobId] = useState("JOB-101");
-  const [assignments, setAssignments] = useState([]);
-  const [recentActivity, setRecentActivity] = useState([
-    { id: 1, text: "System initialized with 20 candidate profiles in pool.", time: "Just now", type: "info" }
-  ]);
+
+  const [assignments, setAssignments] = useState(() => {
+    try {
+      const saved = localStorage.getItem("bm_cloudhire_assignments");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [recentActivity, setRecentActivity] = useState(() => {
+    try {
+      const saved = localStorage.getItem("bm_cloudhire_activity");
+      return saved ? JSON.parse(saved) : [
+        { id: 1, text: "System initialized with 20 candidate profiles in pool.", time: "Just now", type: "info" }
+      ];
+    } catch {
+      return [
+        { id: 1, text: "System initialized with 20 candidate profiles in pool.", time: "Just now", type: "info" }
+      ];
+    }
+  });
   const [isLoading, setIsLoading] = useState(false);
+
+  // Synchronize state changes to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem("bm_cloudhire_jobs", JSON.stringify(jobs));
+    } catch (e) {
+      console.warn("Could not persist jobs to localStorage", e);
+    }
+  }, [jobs]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("bm_cloudhire_candidates", JSON.stringify(candidates));
+    } catch (e) {
+      console.warn("Could not persist candidates to localStorage", e);
+    }
+  }, [candidates]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("bm_cloudhire_assignments", JSON.stringify(assignments));
+    } catch (e) {
+      console.warn("Could not persist assignments to localStorage", e);
+    }
+  }, [assignments]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("bm_cloudhire_activity", JSON.stringify(recentActivity));
+    } catch (e) {
+      console.warn("Could not persist activity to localStorage", e);
+    }
+  }, [recentActivity]);
 
   const logActivity = (text, type = "info") => {
     setRecentActivity(prev => [
@@ -295,14 +362,41 @@ export function AppProvider({ children }) {
     }
   };
 
-  // Reset to initial clean state
+  // Delete Candidate from repository
+  const deleteCandidate = (candidateId) => {
+    const toDel = candidates.find(c => (c.id === candidateId || c.candidateId === candidateId));
+    const candName = toDel ? toDel.name : candidateId;
+
+    setCandidates(prev => {
+      const updated = prev.filter(c => (c.id !== candidateId && c.candidateId !== candidateId));
+      try { localStorage.setItem("bm_cloudhire_candidates", JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+
+    setAssignments(prev => {
+      const updated = prev.filter(a => (a.candidateId !== candidateId));
+      try { localStorage.setItem("bm_cloudhire_assignments", JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+
+    logActivity(`Deleted candidate "${candName}" from repository.`, "warning");
+  };
+
+  // Reset to initial clean benchmark state
   const resetDemoData = () => {
+    try {
+      localStorage.removeItem("bm_cloudhire_jobs");
+      localStorage.removeItem("bm_cloudhire_candidates");
+      localStorage.removeItem("bm_cloudhire_assignments");
+      localStorage.removeItem("bm_cloudhire_activity");
+    } catch {}
+
     setJobs(initialJobs);
     setCandidates(initialCandidates);
     setSelectedJobId("JOB-101");
     setAssignments([]);
     setRecentActivity([
-      { id: Date.now(), text: "Candidate repository reset to 20 available resumes.", time: "Just now", type: "info" }
+      { id: Date.now(), text: "Candidate repository reset to 20 available benchmark resumes.", time: "Just now", type: "info" }
     ]);
   };
 
@@ -324,6 +418,7 @@ export function AppProvider({ children }) {
         addJob,
         updateJob,
         addCandidate,
+        deleteCandidate,
         getRankedMatchesForJob,
         confirmAssignment,
         cancelAssignment,

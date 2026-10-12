@@ -929,6 +929,29 @@ body {
   color: #6b21a8;
 }
 
+.btn-delete-candidate {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-delete-candidate:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #f87171;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.15);
+}
+
 /* ---------------- SEARCH & FILTER BARS ---------------- */
 .filter-search-card {
   background: #ffffff;
