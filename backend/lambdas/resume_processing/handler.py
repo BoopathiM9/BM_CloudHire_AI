@@ -172,7 +172,7 @@ def lambda_handler(event, context):
             for existing in all_cands:
                 if existing.get("resumeHash") == sha256_hash:
                     return build_response(409, {
-                        "error": f"Duplicate resume detected! Matches candidate {existing.get('name')} ({existing.get('candidateId')}).",
+                        "error": f"The resume is already uploaded! Matches candidate {existing.get('name')} ({existing.get('candidateId')}).",
                         "duplicateCandidateId": existing.get("candidateId")
                     })
 

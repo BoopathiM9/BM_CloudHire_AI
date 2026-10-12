@@ -51,26 +51,40 @@ export default function ResumeUpload() {
 
     fileList.forEach(file => {
       const ext = file.name.split(".").pop().toLowerCase();
-      if (ext === "pdf" || ext === "docx") {
-        valid.push(file);
-      } else {
+      if (ext !== "pdf" && ext !== "docx") {
         errors.push(`Skipped "${file.name}": Only .pdf and .docx documents are accepted.`);
+        return;
+      }
+
+      // 100% Duplicate check against existing repository
+      const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ").toLowerCase().trim();
+      const alreadyExists = candidates.find(c => 
+        (c.filename && c.filename.toLowerCase() === file.name.toLowerCase()) ||
+        (c.name && c.name.toLowerCase().trim() === cleanName)
+      );
+
+      if (alreadyExists) {
+        errors.push(`The resume is already uploaded! "${file.name}" already exists in the candidate repository (Candidate: ${alreadyExists.name}, ID: ${alreadyExists.id || alreadyExists.candidateId}).`);
+      } else {
+        valid.push(file);
       }
     });
 
     if (errors.length > 0) {
       setUploadStatus({
         type: "warning",
-        message: errors.join(" | ")
+        message: errors.join(" ")
       });
     }
 
-    // Merge into staged queue without duplicating same filename
-    setStagedFiles(prev => {
-      const existingNames = new Set(prev.map(p => p.name));
-      const toAdd = valid.filter(v => !existingNames.has(v.name));
-      return [...prev, ...toAdd];
-    });
+    // Merge non-duplicate valid files into staged queue without duplicating same filename
+    if (valid.length > 0) {
+      setStagedFiles(prev => {
+        const existingNames = new Set(prev.map(p => p.name));
+        const toAdd = valid.filter(v => !existingNames.has(v.name));
+        return [...prev, ...toAdd];
+      });
+    }
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -119,10 +133,11 @@ export default function ResumeUpload() {
 
         successCount++;
       } catch (err) {
-        if (err.message && err.message.includes("Duplicate resume")) {
-          errors.push(err.message);
+        const msg = err.message || "";
+        if (msg.includes("already uploaded") || msg.includes("Duplicate")) {
+          errors.push(msg);
         } else {
-          errors.push(`Parsing failed for "${file.name}": ${err.message}`);
+          errors.push(`Parsing failed for "${file.name}": ${msg}`);
         }
       }
     }
@@ -132,8 +147,8 @@ export default function ResumeUpload() {
 
     if (errors.length > 0 && successCount === 0) {
       setUploadStatus({
-        type: "error",
-        message: errors.join(" | ")
+        type: "warning",
+        message: errors.join(" ")
       });
     } else if (errors.length > 0 && successCount > 0) {
       setUploadStatus({

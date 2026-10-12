@@ -138,9 +138,15 @@ export function AppProvider({ children }) {
 
   // Add Candidate Resume
   const addCandidate = async (newCand) => {
-    const duplicate = candidates.find(c => c.resumeHash === newCand.resumeHash);
+    const duplicate = candidates.find(c => {
+      const matchHash = c.resumeHash && newCand.resumeHash && c.resumeHash === newCand.resumeHash;
+      const matchFile = c.filename && newCand.filename && c.filename.toLowerCase() === newCand.filename.toLowerCase();
+      const matchName = c.name && newCand.name && c.name.toLowerCase().trim() === newCand.name.toLowerCase().trim();
+      return matchHash || matchFile || matchName;
+    });
+
     if (duplicate) {
-      throw new Error(`Duplicate resume detected! Matches candidate ${duplicate.name} (${duplicate.id || duplicate.candidateId}).`);
+      throw new Error(`The resume is already uploaded! Matches candidate ${duplicate.name} (${duplicate.id || duplicate.candidateId || "Indexed"}).`);
     }
 
     const candidateWithId = {
