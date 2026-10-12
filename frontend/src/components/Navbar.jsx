@@ -110,7 +110,7 @@ export default function Navbar({ activeTab, setActiveTab }) {
                 </div>
                 <div className="dropdown-divider"></div>
                 <div className="dropdown-footer">
-                  <span className="text-xs text-muted">BM CloudHire AI &bull; v2.4 SaaS</span>
+                  <span className="text-xs text-muted">BM CloudHire AI</span>
                 </div>
               </div>
             )}
