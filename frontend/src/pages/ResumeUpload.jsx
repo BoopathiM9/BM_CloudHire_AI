@@ -192,20 +192,20 @@ export default function ResumeUpload() {
       {/* Page Header */}
       <div className="page-header-row">
         <div>
-          <h2 className="page-main-heading">Candidate Resume Management</h2>
+          <h2 className="page-main-heading">Candidate Resumes</h2>
           <p className="page-sub-heading">
-            Securely upload, parse, and index candidate resumes with verified document deduplication.
+            Upload PDF and DOCX files. Automatic deduplication and candidate indexing.
           </p>
         </div>
 
         <div className="header-status-pills">
           <span className="badge-status-green">
             <UserCheck size={13} />
-            <span>{availableCandidates.length} Available Pool</span>
+            <span>{availableCandidates.length} Available</span>
           </span>
           <span className="badge-status-purple">
             <UserX size={13} />
-            <span>{assignedCandidates.length} Assigned / Excluded</span>
+            <span>{assignedCandidates.length} Assigned</span>
           </span>
         </div>
       </div>
@@ -227,21 +227,19 @@ export default function ResumeUpload() {
           onChange={(e) => onFileSelect(e.target.files)}
         />
         <div className="dropzone-icon-circle">
-          <UploadCloud size={36} className="dropzone-svg" />
+          <UploadCloud size={32} className="dropzone-svg" />
         </div>
         <h3 className="dropzone-headline">
-          {isProcessing ? "Processing & Extracting Resumes..." : "Drop Candidate Resumes Here"}
+          {isProcessing ? "Processing Resumes..." : "Upload Resumes"}
         </h3>
         <p className="dropzone-instructions">
-          Drag and drop 10–20 resumes in one session, or click Browse below to select files from your computer.
+          Drag and drop PDF or DOCX files here, or click to browse.
         </p>
 
         <div className="dropzone-features">
-          <span className="feature-chip">Supported: PDF & DOCX</span>
-          <span className="feature-chip">Max Size: 10MB</span>
-          <span className="feature-chip">AI Resume Analysis</span>
-          <span className="feature-chip">Verified Deduplication</span>
-          <span className="feature-chip">Secure Resume Storage</span>
+          <span className="feature-chip">PDF &amp; DOCX</span>
+          <span className="feature-chip">Max 10MB</span>
+          <span className="feature-chip">SHA-256 Deduplication</span>
         </div>
 
         <div>
@@ -253,8 +251,8 @@ export default function ResumeUpload() {
               fileInputRef.current?.click();
             }}
           >
-            <FolderOpen size={16} />
-            <span>Browse Resumes from Device</span>
+            <FolderOpen size={15} />
+            <span>Browse Files</span>
           </button>
         </div>
       </div>
@@ -264,12 +262,12 @@ export default function ResumeUpload() {
         <div className="staged-queue-card">
           <div className="staged-header">
             <div className="staged-title-group">
-              <FileText size={18} className="text-primary" />
+              <FileText size={16} className="text-primary" />
               <span className="staged-title">
-                Ready for AI Ingestion ({stagedFiles.length} file{stagedFiles.length > 1 ? "s" : ""})
+                Selected Files ({stagedFiles.length})
               </span>
               <span className="staged-total-size">
-                Total: {formatFileSize(stagedFiles.reduce((acc, f) => acc + f.size, 0))}
+                {formatFileSize(stagedFiles.reduce((acc, f) => acc + f.size, 0))}
               </span>
             </div>
 
@@ -280,8 +278,8 @@ export default function ResumeUpload() {
                 onClick={clearStagedQueue}
                 disabled={isProcessing}
               >
-                <Trash2 size={14} />
-                <span>Clear Queue</span>
+                <Trash2 size={13} />
+                <span>Clear</span>
               </button>
 
               <button 
@@ -292,13 +290,13 @@ export default function ResumeUpload() {
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 size={16} className="spinner-icon" />
-                    <span>Analyzing & Parsing Resumes...</span>
+                    <Loader2 size={15} className="spinner-icon" />
+                    <span>Processing Resumes...</span>
                   </>
                 ) : (
                   <>
-                    <Send size={16} />
-                    <span>Send & Process Resumes ({stagedFiles.length})</span>
+                    <Send size={15} />
+                    <span>Process Resumes ({stagedFiles.length})</span>
                   </>
                 )}
               </button>
@@ -353,9 +351,9 @@ export default function ResumeUpload() {
       <div className="card mt-6">
         <div className="card-header-flex">
           <div>
-            <h3 className="section-title">Candidate Repository</h3>
+            <h3 className="section-title">Candidate Pool</h3>
             <p className="card-subtitle">
-              {candidates.length} profiles stored and indexed with current availability and verified skills.
+              {candidates.length} candidates in database.
             </p>
           </div>
 
@@ -400,13 +398,13 @@ export default function ResumeUpload() {
           <table className="enterprise-table">
             <thead>
               <tr>
-                <th>Candidate ID</th>
-                <th>Candidate Name</th>
-                <th>Resume Document</th>
-                <th>Experience</th>
-                <th>Availability Status</th>
-                <th>Core Extracted Skills</th>
-                <th>Certifications</th>
+                <th>ID</th>
+                <th>Candidate</th>
+                <th>Document</th>
+                <th>Exp</th>
+                <th>Status</th>
+                <th>Skills</th>
+                <th>Education & Certs</th>
                 <th>Actions</th>
               </tr>
             </thead>

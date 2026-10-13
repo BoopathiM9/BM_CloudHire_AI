@@ -5,21 +5,21 @@ import {
   LayoutDashboard, 
   Briefcase, 
   FileText, 
-  Sparkles, 
+  Sliders, 
   History, 
   RotateCcw, 
   ChevronDown
 } from "lucide-react";
 
 export default function Navbar({ activeTab, setActiveTab }) {
-  const { availableCandidates, resetDemoData, backendConnected, checkHealthAndSync } = useApp();
+  const { availableCandidates, resetDemoData, checkHealthAndSync } = useApp();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "jobs", label: "Jobs", icon: Briefcase },
     { id: "resumes", label: "Resumes", icon: FileText },
-    { id: "matching", label: "Candidate Matching", icon: Sparkles },
+    { id: "matching", label: "Candidate Matching", icon: Sliders },
     { id: "history", label: "Assignments & History", icon: History },
   ];
 
@@ -52,17 +52,8 @@ export default function Navbar({ activeTab, setActiveTab }) {
           })}
         </nav>
 
-        {/* Right Section: System Status & User Profile */}
+        {/* Right Section: User Profile & Actions */}
         <div className="nav-actions">
-          {/* Business-Friendly System Status Indicator */}
-          <div 
-            className="system-status-indicator" 
-            title="Cloud & Enterprise Service Live"
-            onClick={checkHealthAndSync}
-          >
-            <span className="status-dot connected"></span>
-            <span className="status-text">Connected</span>
-          </div>
 
           {/* Reset Demo Data Button */}
           <button
@@ -110,7 +101,7 @@ export default function Navbar({ activeTab, setActiveTab }) {
                 </div>
                 <div className="dropdown-divider"></div>
                 <div className="dropdown-footer">
-                  <span className="text-xs text-muted">BM CloudHire AI</span>
+                  <span className="text-xs text-muted">BM CloudHire</span>
                 </div>
               </div>
             )}

@@ -5,10 +5,9 @@ import {
   UserX, 
   Briefcase, 
   ArrowRight, 
-  Sparkles, 
   Clock, 
   FileText,
-  ChevronRight
+  CheckCircle2
 } from "lucide-react";
 
 export default function Dashboard({ setActiveTab }) {
@@ -28,116 +27,98 @@ export default function Dashboard({ setActiveTab }) {
   const availPercentage = total > 0 ? Math.round((availCount / total) * 100) : 0;
   const asgnPercentage = total > 0 ? Math.round((asgnCount / total) * 100) : 0;
 
-  const workflowSteps = [
-    { number: "01", title: "Create Job Description", desc: "Define role details, mandatory skills, and weighting criteria.", tab: "jobs" },
-    { number: "02", title: "Upload Resumes", desc: "Ingest PDF or DOCX candidate files with automatic deduplication.", tab: "resumes" },
-    { number: "03", title: "Analyze Matches", desc: "Evaluate competencies against evidence with transparent scoring.", tab: "matching" },
-    { number: "04", title: "Confirm Top Three", desc: "Review top-ranked candidates, insights, and confirm selection.", tab: "matching" },
-    { number: "05", title: "Track Assignments", desc: "Exclude assigned talent from future roles and audit hiring history.", tab: "history" }
-  ];
-
   return (
     <div className="page-container">
-      {/* 1. Welcome Section */}
-      <section className="welcome-banner">
-        <div className="welcome-content">
-          <div className="welcome-badge">
-            <span className="badge-sparkle">
-              <Sparkles size={14} />
-            </span>
-            <span>Intelligent Recruitment. Better Decisions.</span>
-          </div>
-
-          <h1 className="welcome-title">Intelligent Recruitment, Simplified</h1>
-          <p className="welcome-description">
-            Analyze resumes, discover top candidates, and manage job assignments with AI-powered insights.
-            Ensure fair, evidence-based candidate scoring with zero duplicate hiring reuse.
+      {/* 1. Clean Developer Header */}
+      <div className="page-header-row">
+        <div>
+          <h2 className="page-main-heading">Overview</h2>
+          <p className="page-sub-heading">
+            Candidate repository, active job openings, and talent assignments.
           </p>
-
-          <div className="welcome-actions">
-            <button 
-              onClick={() => setActiveTab("matching")} 
-              className="btn-primary-large"
-            >
-              <Sparkles size={17} />
-              <span>Start Candidate Matching</span>
-              <ArrowRight size={16} />
-            </button>
-
-            <button 
-              onClick={() => setActiveTab("jobs")} 
-              className="btn-secondary-large"
-            >
-              <Briefcase size={17} />
-              <span>Manage Jobs</span>
-            </button>
-          </div>
-
-          {/* Business Capability Tags */}
-          <div className="capability-tags-row">
-            <span className="cap-tag">AI Resume Analysis</span>
-            <span className="cap-tag">Secure Resume Storage</span>
-            <span className="cap-tag">Candidate Matching Engine</span>
-            <span className="cap-tag">Smart Ranking</span>
-            <span className="cap-tag">Candidate Assignment</span>
-          </div>
         </div>
-      </section>
 
-      {/* 2. Summary Metrics */}
+        <div className="header-actions-clean">
+          <button 
+            onClick={() => setActiveTab("matching")} 
+            className="btn-primary"
+          >
+            <span>Match Candidates</span>
+            <ArrowRight size={15} />
+          </button>
+
+          <button 
+            onClick={() => setActiveTab("resumes")} 
+            className="btn-secondary"
+          >
+            <FileText size={15} />
+            <span>Upload Resumes</span>
+          </button>
+
+          <button 
+            onClick={() => setActiveTab("jobs")} 
+            className="btn-secondary"
+          >
+            <Briefcase size={15} />
+            <span>New Job</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Key Metrics Grid */}
       <section className="metrics-grid">
         <div className="metric-card">
           <div className="metric-header">
-            <span className="metric-label">Total Resumes</span>
+            <span className="metric-label">Total Candidates</span>
             <div className="metric-icon-box blue">
-              <FileText size={19} />
+              <FileText size={18} />
             </div>
           </div>
           <div className="metric-value">{total}</div>
-          <div className="metric-caption">Indexed candidate repository</div>
+          <div className="metric-caption">{availCount} available &bull; {asgnCount} assigned</div>
         </div>
 
         <div className="metric-card">
           <div className="metric-header">
-            <span className="metric-label">Available Candidates</span>
+            <span className="metric-label">Available Pool</span>
             <div className="metric-icon-box green">
-              <UserCheck size={19} />
+              <UserCheck size={18} />
             </div>
           </div>
           <div className="metric-value text-green">{availCount}</div>
-          <div className="metric-caption">{availPercentage}% of total talent pool</div>
+          <div className="metric-caption">{availPercentage}% ready for matching</div>
         </div>
 
         <div className="metric-card">
           <div className="metric-header">
-            <span className="metric-label">Assigned Candidates</span>
+            <span className="metric-label">Assigned</span>
             <div className="metric-icon-box purple">
-              <UserX size={19} />
+              <UserX size={18} />
             </div>
           </div>
           <div className="metric-value text-purple">{asgnCount}</div>
-          <div className="metric-caption">Excluded from subsequent roles</div>
+          <div className="metric-caption">Excluded from future roles</div>
         </div>
 
         <div className="metric-card">
           <div className="metric-header">
-            <span className="metric-label">Active Job Descriptions</span>
+            <span className="metric-label">Active Jobs</span>
             <div className="metric-icon-box indigo">
-              <Briefcase size={19} />
+              <Briefcase size={18} />
             </div>
           </div>
           <div className="metric-value">{jobs.length}</div>
-          <div className="metric-caption">Requisitions ready for matching</div>
+          <div className="metric-caption">Open requisitions</div>
         </div>
       </section>
 
-      {/* 3. Candidate Pool Allocation & Exclusion Status */}
+      {/* 3. Candidate Pool Allocation Progress Bar */}
       <section className="card mb-6">
         <div className="card-header-flex">
           <div>
-            <h3 className="section-title">Candidate Pool Allocation & Exclusion Status</h3>
+            <h3 className="section-title">Talent Pool Status</h3>
             <p className="card-subtitle">
-              Visualizes talent availability under the business rule: assigned candidates are automatically excluded from subsequent requisitions.
+              Assigned candidates are excluded from future matching runs to prevent duplicate hiring.
             </p>
           </div>
           <span className="badge-status-neutral">
@@ -149,14 +130,14 @@ export default function Dashboard({ setActiveTab }) {
           <div 
             className="allocation-bar available" 
             style={{ width: `${availPercentage}%` }}
-            title={`Available: ${availCount} candidates`}
+            title={`Available: ${availCount}`}
           >
-            {availPercentage > 12 && `${availCount} Available`}
+            {availPercentage > 10 && `${availCount} Available`}
           </div>
           <div 
             className="allocation-bar assigned" 
             style={{ width: `${asgnPercentage}%` }}
-            title={`Assigned: ${asgnCount} candidates`}
+            title={`Assigned: ${asgnCount}`}
           >
             {asgnPercentage > 8 && `${asgnCount} Assigned`}
           </div>
@@ -165,111 +146,84 @@ export default function Dashboard({ setActiveTab }) {
         <div className="allocation-legend">
           <div className="legend-item">
             <span className="legend-indicator available"></span>
-            <span>Available for Next Job Selection ({availCount})</span>
+            <span>Available ({availCount})</span>
           </div>
           <div className="legend-item">
             <span className="legend-indicator assigned"></span>
-            <span>Assigned & Excluded from Matching ({asgnCount})</span>
+            <span>Assigned &amp; Excluded ({asgnCount})</span>
           </div>
         </div>
       </section>
 
-      {/* 4. Getting Started 5-Step Workflow */}
-      <section className="card mb-6">
-        <div className="card-header-flex">
-          <div>
-            <h3 className="section-title">Standard Recruitment Workflow</h3>
-            <p className="card-subtitle">
-              Follow this structured 5-step process to review and assign top talent with full auditability.
-            </p>
-          </div>
-        </div>
-
-        <div className="workflow-steps-grid">
-          {workflowSteps.map((step) => (
-            <div 
-              key={step.number} 
-              className="workflow-step-card"
-              onClick={() => setActiveTab(step.tab)}
-            >
-              <div className="step-num">{step.number}</div>
-              <h4 className="step-title">{step.title}</h4>
-              <p className="step-desc">{step.desc}</p>
-              <div className="step-link">
-                <span>Proceed</span>
-                <ChevronRight size={13} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 5. Two-Column Layout: Saved Jobs & Recent Activity */}
+      {/* 4. Two-Column Layout: Jobs & Activity */}
       <div className="grid-2-col">
-        {/* Saved Jobs List */}
+        {/* Open Job Requisitions */}
         <section className="card">
           <div className="card-header-flex">
             <div>
-              <h3 className="section-title">Job Requisitions</h3>
-              <p className="card-subtitle">Select any opening to initiate candidate matching</p>
+              <h3 className="section-title">Open Jobs ({jobs.length})</h3>
+              <p className="card-subtitle">Select a role to run candidate matching</p>
             </div>
             <button onClick={() => setActiveTab("jobs")} className="btn-link">
-              View All <ArrowRight size={14} />
+              View All <ArrowRight size={13} />
             </button>
           </div>
 
           <div className="compact-jobs-list">
-            {jobs.map((job) => (
-              <div 
-                key={job.id || job.jobId} 
-                className={`compact-job-card ${(selectedJob?.id === job.id || selectedJob?.jobId === job.jobId) ? "selected" : ""}`}
-                onClick={() => setSelectedJobId(job.id || job.jobId)}
-              >
-                <div className="compact-job-info">
-                  <div className="compact-job-title-row">
-                    <span className="compact-job-title">{job.title}</span>
-                    {(selectedJob?.id === job.id || selectedJob?.jobId === job.jobId) && (
-                      <span className="badge-active-mini">Active</span>
-                    )}
-                  </div>
-                  <div className="compact-job-meta">
-                    <span>{job.company || "Enterprise Client"}</span> &bull; <span>Min {job.minExperienceYears || 2} yrs experience</span>
-                  </div>
-                  <div className="compact-skills-row">
-                    {(job.requiredSkills || []).slice(0, 3).map((s, idx) => (
-                      <span key={idx} className="skill-tag-micro">{s}</span>
-                    ))}
-                    {(job.requiredSkills || []).length > 3 && (
-                      <span className="skill-tag-micro count">+{(job.requiredSkills || []).length - 3}</span>
-                    )}
-                  </div>
-                </div>
-
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedJobId(job.id || job.jobId);
-                    setActiveTab("matching");
-                  }}
-                  className="btn-match-compact"
-                  title="Match candidates for this job"
+            {jobs.map((job) => {
+              const isSelected = (selectedJob?.id === job.id || selectedJob?.jobId === job.jobId);
+              return (
+                <div 
+                  key={job.id || job.jobId} 
+                  className={`compact-job-card ${isSelected ? "selected" : ""}`}
+                  onClick={() => setSelectedJobId(job.id || job.jobId)}
                 >
-                  <Sparkles size={14} />
-                  <span>Match</span>
-                </button>
-              </div>
-            ))}
+                  <div className="compact-job-info">
+                    <div className="compact-job-title-row">
+                      <span className="compact-job-title">{job.title}</span>
+                      {isSelected && (
+                        <span className="badge-active-mini">Selected</span>
+                      )}
+                    </div>
+                    <div className="compact-job-meta">
+                      <span>{job.company || "Client"}</span> &bull; <span>Min {job.minExperienceYears || 2} yrs exp</span>
+                    </div>
+                    <div className="compact-skills-row">
+                      {(job.requiredSkills || []).slice(0, 3).map((s, idx) => (
+                        <span key={idx} className="skill-tag-micro">{s}</span>
+                      ))}
+                      {(job.requiredSkills || []).length > 3 && (
+                        <span className="skill-tag-micro count">+{(job.requiredSkills || []).length - 3}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedJobId(job.id || job.jobId);
+                      setActiveTab("matching");
+                    }}
+                    className="btn-match-compact"
+                    title="Match candidates for this job"
+                  >
+                    <span>Match</span>
+                    <ArrowRight size={13} />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </section>
 
-        {/* Recent Activity Feed */}
+        {/* Activity Feed */}
         <section className="card">
           <div className="card-header-flex">
             <div>
-              <h3 className="section-title">Recent Recruitment Activity</h3>
-              <p className="card-subtitle">Chronological ledger of matching and assignment events</p>
+              <h3 className="section-title">Activity Log</h3>
+              <p className="card-subtitle">Recent resume uploads and candidate assignments</p>
             </div>
-            <Clock size={16} className="text-muted" />
+            <Clock size={15} className="text-muted" />
           </div>
 
           <div className="activity-stream">

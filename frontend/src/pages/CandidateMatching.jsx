@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { 
-  Sparkles, 
+  FileText, 
   CheckCircle2, 
   XCircle, 
   CheckSquare, 
@@ -73,21 +73,13 @@ export default function CandidateMatching({ setActiveTab }) {
       {/* 1. Top Configuration Banner */}
       <div className="matching-control-panel">
         <div className="panel-left-content">
-          <div className="system-feature-tags">
-            <span className="feature-pill active">
-              <Sparkles size={13} />
-              <span>Candidate Matching Engine</span>
-            </span>
-            <span className="feature-pill neutral">Smart Ranking Active</span>
-          </div>
-
-          <h2 className="matching-heading">Candidate Evaluation & Top 3 Spotlight</h2>
+          <h2 className="matching-heading">Candidate Matching</h2>
           <p className="matching-subheading">
-            Ranks only currently available candidates against the requisition requirements. Assigned talent is automatically excluded.
+            Rank available candidates against role criteria. Assigned candidates are excluded.
           </p>
 
           <div className="job-selector-strip mt-3">
-            <label className="text-xs uppercase font-bold tracking-wider text-muted">Active Job Requisition:</label>
+            <label className="text-xs uppercase font-bold tracking-wider text-muted">Role:</label>
             <div className="job-dropdown-row mt-1">
               <select
                 value={selectedJobId}
@@ -110,7 +102,7 @@ export default function CandidateMatching({ setActiveTab }) {
 
               <span className="pool-count-indicator">
                 <Users size={14} />
-                <span>{totalEligible} Eligible in Available Pool</span>
+                <span>{totalEligible} Available</span>
               </span>
             </div>
           </div>
@@ -118,7 +110,7 @@ export default function CandidateMatching({ setActiveTab }) {
 
         {/* 100-Point Transparent Rubric Card */}
         <div className="rubric-spec-card">
-          <h4>Evidence-Based 100-Point Scoring</h4>
+          <h4>100-Point Scoring Rubric</h4>
           <div className="rubric-stacked-bar">
             <div className="rubric-segment req" style={{ width: "40%" }} title="Mandatory Skills (40 pts)">40%</div>
             <div className="rubric-segment exp" style={{ width: "25%" }} title="Relevant Experience (25 pts)">25%</div>
@@ -127,7 +119,7 @@ export default function CandidateMatching({ setActiveTab }) {
             <div className="rubric-segment edu" style={{ width: "5%" }} title="Education & Certs (5 pts)">5%</div>
           </div>
           <div className="rubric-legend-text">
-            <span>Deterministic arithmetic &bull; Zero hallucinated weights</span>
+            <span>Skills 40% &bull; Exp 25% &bull; Projects 20% &bull; Preferred 10% &bull; Edu 5%</span>
           </div>
         </div>
       </div>
@@ -170,9 +162,9 @@ export default function CandidateMatching({ setActiveTab }) {
       {/* Top 3 Header & Actions */}
       <div className="section-header-row mt-6">
         <div>
-          <h3 className="section-title">Top {topThree.length} Candidate Recommendations</h3>
+          <h3 className="section-title">Top {topThree.length} Candidates</h3>
           <p className="section-sub">
-            Ranked highest based on demonstrated skills, verified experience, and production portfolio alignment.
+            Ranked by skill match, experience, and project alignment.
           </p>
         </div>
 
@@ -182,7 +174,7 @@ export default function CandidateMatching({ setActiveTab }) {
               onClick={handleSelectAllTopThree}
               className="btn-outline-sm"
             >
-              {selectedForAssign.length === topThree.length ? "Deselect All" : "Select All Top 3"}
+              {selectedForAssign.length === topThree.length ? "Deselect All" : "Select Top 3"}
             </button>
 
             <button
@@ -242,11 +234,11 @@ export default function CandidateMatching({ setActiveTab }) {
                   <span className="rubric-pill">Edu: {match.breakdown.education.score}/5</span>
                 </div>
 
-                {/* AI Recommendation Rationale Box */}
+                {/* Match Evaluation Rationale Box */}
                 <div className="ai-justification-card">
                   <div className="justification-header">
-                    <Sparkles size={13} className="text-primary" />
-                    <span>AI Recommendation Rationale:</span>
+                    <FileText size={13} className="text-primary" />
+                    <span>Evaluation Summary:</span>
                   </div>
                   <p className="justification-text">{match.explanation}</p>
                 </div>
@@ -326,12 +318,12 @@ export default function CandidateMatching({ setActiveTab }) {
       <div className="card mt-8">
         <div className="card-header-flex">
           <div>
-            <h3 className="section-title">Remaining Eligible Candidates ({remaining.length})</h3>
+            <h3 className="section-title">Other Candidates ({remaining.length})</h3>
             <p className="card-subtitle">
-              Candidates in the available pool ranked below the top 3 for <strong>{selectedJob?.title}</strong>.
+              Candidates ranked below top 3 for <strong>{selectedJob?.title}</strong>.
             </p>
           </div>
-          <span className="badge-status-neutral">Total Pool: {totalEligible}</span>
+          <span className="badge-status-neutral">Total Available: {totalEligible}</span>
         </div>
 
         {remaining.length === 0 ? (

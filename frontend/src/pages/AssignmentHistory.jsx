@@ -7,7 +7,7 @@ import {
   Calendar, 
   Eye, 
   X, 
-  Sparkles 
+  FileText 
 } from "lucide-react";
 
 export default function AssignmentHistory({ setActiveTab }) {
@@ -28,9 +28,9 @@ export default function AssignmentHistory({ setActiveTab }) {
       {/* Page Header */}
       <div className="page-header-row">
         <div>
-          <h2 className="page-main-heading">Candidate Assignment Ledger & Audit History</h2>
+          <h2 className="page-main-heading">Assignment History</h2>
           <p className="page-sub-heading">
-            Permanent system of record for recruiter assignments, exclusion tracking, and authorized candidate pool rollbacks.
+            Confirmed candidate assignments and status log.
           </p>
         </div>
 
@@ -54,13 +54,13 @@ export default function AssignmentHistory({ setActiveTab }) {
         <div className="card">
           <div className="card-header-flex">
             <div>
-              <h3 className="section-title">Assignment Audit Ledger</h3>
+              <h3 className="section-title">Assignment Log</h3>
               <p className="card-subtitle">
-                {assignments.length} total records &bull; Tracks active candidate commitments and controlled returns to the talent pool.
+                {assignments.length} total records &bull; Active assignments and released candidates.
               </p>
             </div>
             <span className="badge-status-neutral">
-              {assignments.filter(a => a.status === "ACTIVE").length} Active Assignments
+              {assignments.filter(a => a.status === "ACTIVE").length} Active
             </span>
           </div>
 
@@ -68,13 +68,13 @@ export default function AssignmentHistory({ setActiveTab }) {
             <table className="enterprise-table">
               <thead>
                 <tr>
-                  <th>Assignment ID</th>
-                  <th>Candidate Name & ID</th>
-                  <th>Assigned Job</th>
-                  <th>Date & Time Confirmed</th>
+                  <th>ID</th>
+                  <th>Candidate</th>
+                  <th>Job</th>
+                  <th>Date</th>
                   <th>Status</th>
-                  <th>Historical Analysis</th>
-                  <th>Audit Control</th>
+                  <th>Details</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -107,11 +107,11 @@ export default function AssignmentHistory({ setActiveTab }) {
                       <td>
                         {isActive ? (
                           <span className="status-pill-badge assigned">
-                            Active (Excluded)
+                            Active
                           </span>
                         ) : (
                           <span className="status-pill-badge available">
-                            Released (In Pool)
+                            Released
                           </span>
                         )}
                       </td>
@@ -119,10 +119,10 @@ export default function AssignmentHistory({ setActiveTab }) {
                         <button
                           onClick={() => setInspectingAssignment(record)}
                           className="btn-inspect-action"
-                          title="View Historical Analysis"
+                          title="View Details"
                         >
                           <Eye size={13} />
-                          <span>Inspect Analysis</span>
+                          <span>View</span>
                         </button>
                       </td>
                       <td>
@@ -130,10 +130,10 @@ export default function AssignmentHistory({ setActiveTab }) {
                           <button
                             onClick={() => handleCancelAssignment(record.id || record.assignmentId, record.candidateName, record.jobTitle)}
                             className="btn-release-action"
-                            title="Return candidate to available pool"
+                            title="Release candidate back to available pool"
                           >
                             <RotateCcw size={13} />
-                            <span>Release to Pool</span>
+                            <span>Release</span>
                           </button>
                         ) : (
                           <span className="text-xs text-muted italic">Released</span>
@@ -155,7 +155,7 @@ export default function AssignmentHistory({ setActiveTab }) {
             <div className="modal-top">
               <div>
                 <span className="id-code-badge">{inspectingAssignment.candidateId}</span>
-                <h3 className="modal-title-custom">Historical Match Analysis</h3>
+                <h3 className="modal-title-custom">Assignment Details</h3>
               </div>
               <button onClick={() => setInspectingAssignment(null)} className="btn-modal-close">
                 <X size={18} />
@@ -164,32 +164,32 @@ export default function AssignmentHistory({ setActiveTab }) {
 
             <div className="modal-content-scrollable">
               <div className="view-detail-row">
-                <strong>Candidate Name:</strong> {inspectingAssignment.candidateName}
+                <strong>Candidate:</strong> {inspectingAssignment.candidateName}
               </div>
               <div className="view-detail-row">
-                <strong>Assigned Position:</strong> {inspectingAssignment.jobTitle} ({inspectingAssignment.jobId})
+                <strong>Position:</strong> {inspectingAssignment.jobTitle} ({inspectingAssignment.jobId})
               </div>
               <div className="view-detail-row">
-                <strong>Confirmation Timestamp:</strong> {new Date(inspectingAssignment.assignedAt).toLocaleString()}
+                <strong>Assigned Date:</strong> {new Date(inspectingAssignment.assignedAt).toLocaleString()}
               </div>
               <div className="view-detail-row">
-                <strong>Current Status:</strong> {inspectingAssignment.status === "ACTIVE" ? "Active Assignment (Excluded from other jobs)" : "Released (Returned to available pool)"}
+                <strong>Status:</strong> {inspectingAssignment.status === "ACTIVE" ? "Active (Excluded from other jobs)" : "Released (In pool)"}
               </div>
 
               <div className="inspection-callout-box mt-4">
                 <div className="inspection-callout-header">
-                  <Sparkles size={14} className="text-primary" />
-                  <span>Permanent Audit Verification:</span>
+                  <FileText size={14} className="text-primary" />
+                  <span>Audit Record:</span>
                 </div>
                 <p className="inspection-callout-body">
-                  Candidate assignment confirmed by talent acquisition team. All historical evaluation scores, timestamped decision points, and technical competency assessments are preserved in the permanent audit ledger.
+                  Candidate assignment confirmed. Evaluation scores, timestamp, and role requirements are recorded.
                 </p>
               </div>
             </div>
 
             <div className="modal-bottom-actions">
               <button onClick={() => setInspectingAssignment(null)} className="btn-secondary">
-                Close Inspection
+                Close
               </button>
             </div>
           </div>

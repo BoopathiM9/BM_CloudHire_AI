@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { 
   Plus, 
-  Sparkles, 
+  Sliders, 
   Search, 
   Building2, 
   Clock, 
@@ -132,15 +132,15 @@ export default function JobManagement({ setActiveTab }) {
       {/* Page Header */}
       <div className="page-header-row">
         <div>
-          <h2 className="page-main-heading">Job Requisition Management</h2>
+          <h2 className="page-main-heading">Job Openings</h2>
           <p className="page-sub-heading">
-            Create, search, configure, and edit job openings to benchmark candidate capabilities.
+            Manage open roles, required skills, and experience criteria.
           </p>
         </div>
 
         <button onClick={openCreateModal} className="btn-primary">
           <Plus size={16} />
-          <span>Create New Job</span>
+          <span>New Job</span>
         </button>
       </div>
 
@@ -150,7 +150,7 @@ export default function JobManagement({ setActiveTab }) {
           <Search size={16} className="search-icon" />
           <input
             type="text"
-            placeholder="Search by job title, company name, or required skill..."
+            placeholder="Search by title, company, or skill..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="filter-search-input"
@@ -240,7 +240,7 @@ export default function JobManagement({ setActiveTab }) {
                 {/* Skills Taxonomy */}
                 <div className="job-skills-block">
                   <div className="skill-group-row">
-                    <span className="skill-group-title req">Required Competencies (40% Weight):</span>
+                    <span className="skill-group-title req">Required Skills (40%):</span>
                     <div className="skills-tags-wrap">
                       {(job.requiredSkills || []).map((s, idx) => (
                         <span key={idx} className="skill-tag required">{s}</span>
@@ -250,7 +250,7 @@ export default function JobManagement({ setActiveTab }) {
 
                   {(job.preferredSkills || []).length > 0 && (
                     <div className="skill-group-row mt-2">
-                      <span className="skill-group-title pref">Preferred Competencies (10% Weight):</span>
+                      <span className="skill-group-title pref">Preferred Skills (10%):</span>
                       <div className="skills-tags-wrap">
                         {job.preferredSkills.map((s, idx) => (
                           <span key={idx} className="skill-tag preferred">{s}</span>
@@ -266,7 +266,7 @@ export default function JobManagement({ setActiveTab }) {
                     <button 
                       onClick={() => setViewingJob(job)} 
                       className="btn-text-action"
-                      title="View Full Details"
+                      title="View Details"
                     >
                       <Eye size={14} />
                       <span>View</span>
@@ -274,7 +274,7 @@ export default function JobManagement({ setActiveTab }) {
                     <button 
                       onClick={() => openEditModal(job)} 
                       className="btn-text-action"
-                      title="Edit Job Requirements"
+                      title="Edit Job"
                     >
                       <Edit3 size={14} />
                       <span>Edit</span>
@@ -288,8 +288,8 @@ export default function JobManagement({ setActiveTab }) {
                     }}
                     className="btn-match-action"
                   >
-                    <Sparkles size={15} />
-                    <span>Candidate Matching</span>
+                    <Sliders size={15} />
+                    <span>Match</span>
                   </button>
                 </div>
               </div>
@@ -491,8 +491,8 @@ export default function JobManagement({ setActiveTab }) {
                 }} 
                 className="btn-primary"
               >
-                <Sparkles size={15} />
-                <span>Select for Candidate Matching</span>
+                <Sliders size={15} />
+                <span>Match Candidates</span>
               </button>
             </div>
           </div>
