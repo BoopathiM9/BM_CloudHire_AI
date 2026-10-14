@@ -5,6 +5,10 @@ export const initialJobs = [
     id: "JOB-101",
     title: "Senior Full-Stack AWS Developer",
     company: "CloudScale Technologies",
+    location: "Remote (US / India)",
+    type: "Full-Time",
+    salary: "$140,000 - $175,000",
+    status: "PUBLISHED",
     description: "Looking for an experienced full-stack engineer to build serverless microservices with AWS Lambda, DynamoDB, API Gateway, and modern React frontends. Requires strong Python backend expertise, REST API design, and cloud architecture fundamentals.",
     requiredSkills: ["Python", "AWS Lambda", "DynamoDB", "React", "API Gateway"],
     preferredSkills: ["Docker", "TypeScript", "GraphQL", "AWS CDK"],
@@ -16,6 +20,10 @@ export const initialJobs = [
     id: "JOB-102",
     title: "Cloud DevOps & Site Reliability Engineer",
     company: "FinTech Prime Systems",
+    location: "New York, NY (Hybrid)",
+    type: "Full-Time",
+    salary: "$150,000 - $185,000",
+    status: "PUBLISHED",
     description: "Seeking a DevOps specialist to manage automated CI/CD pipelines, Kubernetes container orchestration, infrastructure as code using Terraform/CDK, and AWS observability using CloudWatch and Prometheus.",
     requiredSkills: ["AWS", "Docker", "Kubernetes", "CI/CD", "Terraform"],
     preferredSkills: ["Python", "Prometheus", "CloudWatch", "Linux"],
@@ -27,12 +35,119 @@ export const initialJobs = [
     id: "JOB-103",
     title: "Generative AI & LLM Solutions Engineer",
     company: "Cognitive Nexus Labs",
+    location: "San Francisco, CA (Hybrid)",
+    type: "Full-Time",
+    salary: "$165,000 - $210,000",
+    status: "PUBLISHED",
     description: "Looking for a GenAI Engineer to develop RAG (Retrieval Augmented Generation) pipelines using Amazon Bedrock, Vector Databases, Python FastAPI, and LangChain. Strong experience evaluating LLM prompt patterns and semantic search is required.",
     requiredSkills: ["Python", "Amazon Bedrock", "Vector Databases", "LangChain", "FastAPI"],
     preferredSkills: ["AWS Lambda", "PyTorch", "Hugging Face", "OpenSearch"],
     minExperienceYears: 3,
     educationRequirement: "Master's or Bachelor's in CS / AI / Data Science",
     createdAt: "2026-10-12T08:15:00Z"
+  },
+  {
+    id: "JOB-104",
+    title: "Cloud Security & Compliance Architect",
+    company: "Enterprise Cloud Shield",
+    location: "Austin, TX (Remote)",
+    type: "Full-Time",
+    salary: "$160,000 - $195,000",
+    status: "DRAFT",
+    description: "Draft requisition: Lead cloud security posture management, IAM least-privilege guardrails, AWS KMS key rotation, and SOC2/HIPAA compliance frameworks across multi-account AWS Organizations.",
+    requiredSkills: ["AWS IAM", "KMS", "Security Hub", "CloudTrail", "Python"],
+    preferredSkills: ["Terraform", "GuardDuty", "WAF"],
+    minExperienceYears: 5,
+    educationRequirement: "Bachelor's in Cybersecurity or Information Systems",
+    createdAt: "2026-10-13T14:00:00Z"
+  },
+  {
+    id: "JOB-105",
+    title: "Junior Data Engineer (Legacy Batch)",
+    company: "DataStream Analytics",
+    location: "Chicago, IL (On-Site)",
+    type: "Contract",
+    salary: "$85,000 - $105,000",
+    status: "CLOSED",
+    description: "Requisition closed: Candidate successfully onboarded for ETL batch migrations using AWS Glue and Athena.",
+    requiredSkills: ["SQL", "Python", "AWS S3", "AWS Glue"],
+    preferredSkills: ["Pandas", "PostgreSQL"],
+    minExperienceYears: 2,
+    educationRequirement: "Bachelor's in STEM",
+    createdAt: "2026-10-01T08:00:00Z"
+  }
+];
+
+export const initialApplications = [
+  {
+    id: "APP-8201",
+    jobId: "JOB-101",
+    jobTitle: "Senior Full-Stack AWS Developer",
+    candidateId: "CAN-001",
+    candidateName: "Arun Krishnan",
+    candidateEmail: "arun.krishnan@example.com",
+    phone: "+1 (555) 234-5678",
+    experienceYears: 6,
+    skills: ["Python", "AWS Lambda", "DynamoDB", "React", "API Gateway", "Docker", "AWS CDK"],
+    resumeFilename: "arun_krishnan_resume.pdf",
+    status: "Shortlisted",
+    statusNote: "Technical profile cleared rubric with 89 pts. Progressed to technical interview.",
+    submittedAt: "2026-10-11T12:30:00Z",
+    updatedAt: "2026-10-12T09:15:00Z"
+  },
+  {
+    id: "APP-8202",
+    jobId: "JOB-102",
+    jobTitle: "Cloud DevOps & Site Reliability Engineer",
+    candidateId: "CAN-002",
+    candidateName: "Priya Sharma",
+    candidateEmail: "priya.sharma@example.com",
+    phone: "+1 (555) 345-6789",
+    experienceYears: 5,
+    skills: ["AWS", "Docker", "Kubernetes", "CI/CD", "Terraform", "Python", "Linux"],
+    resumeFilename: "priya_sharma_cloud.docx",
+    status: "Under Review",
+    statusNote: "Resume parsed successfully. Awaiting hiring manager review.",
+    submittedAt: "2026-10-12T14:45:00Z",
+    updatedAt: "2026-10-12T14:45:00Z"
+  },
+  {
+    id: "APP-8203",
+    jobId: "JOB-103",
+    jobTitle: "Generative AI & LLM Solutions Engineer",
+    candidateId: "CAN-004",
+    candidateName: "Neha Patel",
+    candidateEmail: "neha.patel@example.com",
+    phone: "+1 (555) 456-7890",
+    experienceYears: 4,
+    skills: ["Python", "Amazon Bedrock", "Vector Databases", "LangChain", "FastAPI", "PyTorch"],
+    resumeFilename: "neha_patel_genai.pdf",
+    status: "Submitted",
+    statusNote: "Application received and queued for automated competency extraction.",
+    submittedAt: "2026-10-13T10:20:00Z",
+    updatedAt: "2026-10-13T10:20:00Z"
+  }
+];
+
+export const initialUsers = [
+  {
+    id: "USR-REC-01",
+    name: "Boopathi M",
+    email: "recruiter@bmcloudhire.com",
+    role: "RECRUITER",
+    title: "Principal Talent Acquisition Lead",
+    // SHA-256 for 'Recruiter@2026'
+    passwordHash: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+  },
+  {
+    id: "USR-CAN-01",
+    name: "Arun Krishnan",
+    email: "arun.krishnan@example.com",
+    role: "CANDIDATE",
+    title: "Senior Full-Stack Engineer",
+    phone: "+1 (555) 234-5678",
+    // SHA-256 for 'Candidate@2026'
+    passwordHash: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
   }
 ];
 

@@ -196,9 +196,46 @@ def lambda_handler(event, context):
             if status_filter == "AVAILABLE":
                 candidates = ddb_service.get_available_candidates()
             else:
-                # Scan table for candidates
-                candidates = ddb_service.get_available_candidates() # Default
+                candidates = ddb_service.get_available_candidates()
             return build_response(200, {"candidates": candidates, "count": len(candidates)})
+
+        # 7. GET /applications
+        if http_method == "GET" and path == "/applications":
+            params = event.get("queryStringParameters") or {}
+            cand_email = params.get("candidateEmail")
+            job_id = params.get("jobId")
+            apps = ddb_service.list_applications(candidate_email=cand_email, job_id=job_id)
+            return build_response(200, {"applications": apps, "count": len(apps)})
+
+        # 8. POST /applications
+        if http_method == "POST" and path == "/applications":
+            if not body.get("jobId") or not body.get("candidateEmail"):
+                return build_response(400, {"error": "Missing required fields: jobId, candidateEmail"})
+
+            # Check duplicate application
+            existing_apps = ddb_service.list_applications(candidate_email=body["candidateEmail"], job_id=body["jobId"])
+            active_dupes = [a for a in existing_apps if a.get("status") != "Withdrawn"]
+            if active_dupes:
+                return build_response(409, {
+                    "error": "Duplicate submission: You have already applied for this requisition.",
+                    "applicationId": active_dupes[0].get("id")
+                })
+
+            saved_app = ddb_service.save_application(body)
+            return build_response(201, {"message": "Application submitted successfully", "application": saved_app})
+
+        # 9. POST /applications/status (or PUT /applications/{id})
+        if (http_method in ("POST", "PUT")) and (path == "/applications/status" or "/applications/" in path):
+            app_id = body.get("id") or path.split("/")[-1]
+            new_status = body.get("status")
+            status_note = body.get("statusNote", "")
+            if not app_id or not new_status:
+                return build_response(400, {"error": "Missing required fields: id, status"})
+
+            success = ddb_service.update_application_status(app_id, new_status, status_note)
+            if not success:
+                return build_response(404, {"error": f"Application {app_id} not found"})
+            return build_response(200, {"message": f"Application {app_id} status updated to {new_status}"})
 
         return build_response(404, {"error": f"Route not found: {http_method} {path}"})
 

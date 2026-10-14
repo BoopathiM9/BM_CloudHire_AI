@@ -7,7 +7,9 @@ import {
   ArrowRight, 
   Clock, 
   FileText,
-  CheckCircle2
+  CheckCircle2,
+  Users,
+  Award
 } from "lucide-react";
 
 export default function Dashboard({ setActiveTab }) {
@@ -16,6 +18,7 @@ export default function Dashboard({ setActiveTab }) {
     availableCandidates, 
     assignedCandidates, 
     jobs, 
+    applications,
     recentActivity, 
     selectedJob, 
     setSelectedJobId
@@ -27,14 +30,19 @@ export default function Dashboard({ setActiveTab }) {
   const availPercentage = total > 0 ? Math.round((availCount / total) * 100) : 0;
   const asgnPercentage = total > 0 ? Math.round((asgnCount / total) * 100) : 0;
 
+  const activeJobsCount = jobs.filter(j => j.status === "PUBLISHED" || !j.status).length;
+  const totalAppsCount = applications.length;
+  const newAppsCount = applications.filter(a => a.status === "Submitted" || a.status === "Under Review").length;
+  const shortlistedCount = applications.filter(a => a.status === "Shortlisted" || a.status === "Interview" || a.status === "Selected").length;
+
   return (
     <div className="page-container">
       {/* 1. Clean Developer Header */}
       <div className="page-header-row">
         <div>
-          <h2 className="page-main-heading">Overview</h2>
+          <h2 className="page-main-heading">Executive Recruitment Overview</h2>
           <p className="page-sub-heading">
-            Candidate repository, active job openings, and talent assignments.
+            Live metrics across job requisitions, inbound applications, candidate pool, and atomic exclusivity.
           </p>
         </div>
 
@@ -48,11 +56,11 @@ export default function Dashboard({ setActiveTab }) {
           </button>
 
           <button 
-            onClick={() => setActiveTab("resumes")} 
+            onClick={() => setActiveTab("applications")} 
             className="btn-secondary"
           >
-            <FileText size={15} />
-            <span>Upload Resumes</span>
+            <Users size={15} />
+            <span>Applications ({totalAppsCount})</span>
           </button>
 
           <button 
@@ -65,17 +73,28 @@ export default function Dashboard({ setActiveTab }) {
         </div>
       </div>
 
-      {/* 2. Key Metrics Grid */}
+      {/* 2. Key Metrics Grid (6 Real Backend Indicators) */}
       <section className="metrics-grid">
         <div className="metric-card">
           <div className="metric-header">
-            <span className="metric-label">Total Candidates</span>
+            <span className="metric-label">Active Jobs</span>
+            <div className="metric-icon-box indigo">
+              <Briefcase size={18} />
+            </div>
+          </div>
+          <div className="metric-value">{activeJobsCount}</div>
+          <div className="metric-caption">{jobs.length} total requisitions ({jobs.filter(j => j.status === 'DRAFT').length} drafts)</div>
+        </div>
+
+        <div className="metric-card">
+          <div className="metric-header">
+            <span className="metric-label">Total Resumes</span>
             <div className="metric-icon-box blue">
               <FileText size={18} />
             </div>
           </div>
           <div className="metric-value">{total}</div>
-          <div className="metric-caption">{availCount} available &bull; {asgnCount} assigned</div>
+          <div className="metric-caption">Indexed in private cloud repository</div>
         </div>
 
         <div className="metric-card">
@@ -91,24 +110,35 @@ export default function Dashboard({ setActiveTab }) {
 
         <div className="metric-card">
           <div className="metric-header">
-            <span className="metric-label">Assigned</span>
+            <span className="metric-label">Assigned Candidates</span>
             <div className="metric-icon-box purple">
               <UserX size={18} />
             </div>
           </div>
           <div className="metric-value text-purple">{asgnCount}</div>
-          <div className="metric-caption">Excluded from future roles</div>
+          <div className="metric-caption">Locked by exclusion rule</div>
         </div>
 
         <div className="metric-card">
           <div className="metric-header">
-            <span className="metric-label">Active Jobs</span>
-            <div className="metric-icon-box indigo">
-              <Briefcase size={18} />
+            <span className="metric-label">Inbound Applications</span>
+            <div className="metric-icon-box blue">
+              <Users size={18} />
             </div>
           </div>
-          <div className="metric-value">{jobs.length}</div>
-          <div className="metric-caption">Open requisitions</div>
+          <div className="metric-value">{totalAppsCount}</div>
+          <div className="metric-caption">{newAppsCount} new in review queue</div>
+        </div>
+
+        <div className="metric-card">
+          <div className="metric-header">
+            <span className="metric-label">Shortlisted Candidates</span>
+            <div className="metric-icon-box green">
+              <Award size={18} />
+            </div>
+          </div>
+          <div className="metric-value text-green">{shortlistedCount}</div>
+          <div className="metric-caption">Cleared rubric benchmarks</div>
         </div>
       </section>
 

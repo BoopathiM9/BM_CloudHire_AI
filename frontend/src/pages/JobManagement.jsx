@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 export default function JobManagement({ setActiveTab }) {
-  const { jobs, addJob, updateJob, selectedJobId, setSelectedJobId } = useApp();
+  const { jobs, addJob, updateJob, setJobStatus, selectedJobId, setSelectedJobId } = useApp();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -28,6 +28,7 @@ export default function JobManagement({ setActiveTab }) {
   const [description, setDescription] = useState("");
   const [minExp, setMinExp] = useState(3);
   const [education, setEducation] = useState("Bachelor's Degree in Computer Science or related field");
+  const [status, setStatus] = useState("PUBLISHED");
   
   // Tag inputs
   const [reqSkillInput, setReqSkillInput] = useState("");
@@ -42,6 +43,7 @@ export default function JobManagement({ setActiveTab }) {
     setCompany("");
     setDescription("");
     setMinExp(3);
+    setStatus("PUBLISHED");
     setReqSkills(["Python", "React", "Cloud Architecture"]);
     setPrefSkills(["Docker", "API Design"]);
     setShowCreateModal(true);
@@ -54,6 +56,7 @@ export default function JobManagement({ setActiveTab }) {
     setDescription(job.description || "");
     setMinExp(job.minExperienceYears || 2);
     setEducation(job.educationRequirement || "Bachelor's Degree or equivalent");
+    setStatus(job.status || "PUBLISHED");
     setReqSkills(job.requiredSkills || []);
     setPrefSkills(job.preferredSkills || []);
     setShowCreateModal(true);
@@ -99,7 +102,8 @@ export default function JobManagement({ setActiveTab }) {
         requiredSkills: reqSkills,
         preferredSkills: prefSkills,
         minExperienceYears: Number(minExp),
-        educationRequirement: education
+        educationRequirement: education,
+        status: status || "PUBLISHED"
       });
     } else {
       // Create new job
@@ -110,7 +114,8 @@ export default function JobManagement({ setActiveTab }) {
         requiredSkills: reqSkills,
         preferredSkills: prefSkills,
         minExperienceYears: Number(minExp),
-        educationRequirement: education
+        educationRequirement: education,
+        status: status || "PUBLISHED"
       });
       setSelectedJobId(created.jobId || created.id);
     }
@@ -202,7 +207,16 @@ export default function JobManagement({ setActiveTab }) {
                 {/* Header */}
                 <div className="job-card-top-bar">
                   <div>
-                    <span className="job-id-code">{jId}</span>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="job-id-code">{jId}</span>
+                      {job.status === "DRAFT" ? (
+                        <span className="badge badge-amber text-xs">DRAFT</span>
+                      ) : job.status === "CLOSED" ? (
+                        <span className="badge badge-muted text-xs">CLOSED</span>
+                      ) : (
+                        <span className="badge badge-success text-xs">PUBLISHED</span>
+                      )}
+                    </div>
                     <h3 className="job-card-title">{job.title}</h3>
                     <div className="job-card-meta-line">
                       <Building2 size={14} className="text-muted" />
@@ -279,6 +293,32 @@ export default function JobManagement({ setActiveTab }) {
                       <Edit3 size={14} />
                       <span>Edit</span>
                     </button>
+                    {job.status === "DRAFT" ? (
+                      <button 
+                        onClick={() => setJobStatus(jId, "PUBLISHED")}
+                        className="btn-text-action text-emerald font-semibold"
+                        title="Publish job to public candidate board"
+                      >
+                        <CheckCircle2 size={13} />
+                        <span>Publish</span>
+                      </button>
+                    ) : job.status === "PUBLISHED" ? (
+                      <button 
+                        onClick={() => setJobStatus(jId, "CLOSED")}
+                        className="btn-text-action text-muted"
+                        title="Close requisition and hide from candidate board"
+                      >
+                        <span>Close</span>
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => setJobStatus(jId, "PUBLISHED")}
+                        className="btn-text-action text-primary font-semibold"
+                        title="Re-open and publish to candidate board"
+                      >
+                        <span>Re-open</span>
+                      </button>
+                    )}
                   </div>
 
                   <button
@@ -345,6 +385,22 @@ export default function JobManagement({ setActiveTab }) {
                     required
                   />
                 </div>
+              </div>
+
+              <div className="form-field">
+                <label>Requisition Lifecycle Status *</label>
+                <select 
+                  value={status} 
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="input-text w-full"
+                >
+                  <option value="PUBLISHED">Published (Visible on Candidate Portal)</option>
+                  <option value="DRAFT">Draft (Internal Only / Hidden from Candidates)</option>
+                  <option value="CLOSED">Closed (Requisition Filled / Inactive)</option>
+                </select>
+                <span className="text-xs text-muted mt-1 inline-block">
+                  Only <strong>Published</strong> jobs appear on the public candidate career site. Drafts remain protected for recruiter review.
+                </span>
               </div>
 
               <div className="form-field">
