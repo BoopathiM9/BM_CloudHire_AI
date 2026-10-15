@@ -107,19 +107,14 @@ export default function AuthLandingPage({ onLoginSuccess }) {
     }
 
     try {
-      const skillsArray = regSkills
-        .split(",")
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
-
       const res = await registerCandidate({
-        name: regName,
-        email: regEmail,
+        name: regName.trim(),
+        email: regEmail.trim(),
         password: regPassword,
         phone: "",
-        title: regTitle || "Software Engineer",
-        experienceYears: regExpYears,
-        skills: skillsArray.length > 0 ? skillsArray : ["Python", "AWS", "React", "Cloud Computing"]
+        title: "Software Engineer",
+        experienceYears: 1,
+        skills: ["Software Engineering", "Cloud Fundamentals"]
       });
 
       if (res.success) {
@@ -132,8 +127,6 @@ export default function AuthLandingPage({ onLoginSuccess }) {
         setCandidatePassword("");
         setRegPassword("");
         setRegName("");
-        setRegTitle("");
-        setRegSkills("");
       }
     } catch (err) {
       setError(err.message || "Registration failed. An account with this email may already exist.");
@@ -287,7 +280,7 @@ export default function AuthLandingPage({ onLoginSuccess }) {
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Arun Krishnan"
+                      placeholder="Enter your Name"
                       value={regName}
                       onChange={(e) => setRegName(e.target.value)}
                       className="login-input"
@@ -323,42 +316,6 @@ export default function AuthLandingPage({ onLoginSuccess }) {
                       className="login-input"
                     />
                   </div>
-                </div>
-
-                <div className="login-form-row">
-                  <div className="login-input-group">
-                    <label className="login-label">Professional Title</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Cloud Engineer"
-                      value={regTitle}
-                      onChange={(e) => setRegTitle(e.target.value)}
-                      className="login-input no-icon"
-                    />
-                  </div>
-
-                  <div className="login-input-group">
-                    <label className="login-label">Experience (Years)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="40"
-                      value={regExpYears}
-                      onChange={(e) => setRegExpYears(e.target.value)}
-                      className="login-input no-icon"
-                    />
-                  </div>
-                </div>
-
-                <div className="login-input-group">
-                  <label className="login-label">Key Technical Skills</label>
-                  <input
-                    type="text"
-                    placeholder="Python, AWS Lambda, React, Docker"
-                    value={regSkills}
-                    onChange={(e) => setRegSkills(e.target.value)}
-                    className="login-input no-icon"
-                  />
                 </div>
 
                 <button

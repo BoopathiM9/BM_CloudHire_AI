@@ -215,7 +215,7 @@ export default function CandidateApplyModal({ job, isOpen, onClose, onSuccess })
                   <input 
                     type="text" 
                     required 
-                    placeholder="e.g. Arun Krishnan"
+                    placeholder="Enter your Name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
