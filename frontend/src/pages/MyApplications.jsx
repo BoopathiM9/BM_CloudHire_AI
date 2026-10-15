@@ -186,17 +186,20 @@ export default function MyApplications({ setActiveTab, onOpenAuth }) {
       {/* Applications List */}
       <div className="mt-6">
         {currentUser && candidateApplications.length === 0 ? (
-          <div className="empty-state-card card p-8 text-center">
-            <FileCheck2 size={44} className="text-muted mx-auto mb-2" />
+          <div className="empty-state-card">
+            <div className="empty-state-icon-box">
+              <FileCheck2 size={32} className="text-primary" />
+            </div>
             <h3>No Submitted Applications Yet</h3>
-            <p className="text-sm text-muted">
-              You haven't submitted any job applications under <strong>{currentUser.email}</strong>.
+            <p>
+              You haven't submitted any job applications under <strong>{currentUser.email}</strong>. Explore verified cloud engineering requisitions and apply directly with your resume.
             </p>
             <button 
               onClick={() => setActiveTab("find-jobs")} 
-              className="btn btn-primary mt-4"
+              className="btn btn-primary"
             >
-              Browse Open Positions Now
+              <Briefcase size={16} />
+              <span>Browse Open Positions Now</span>
             </button>
           </div>
         ) : !currentUser && hasSearched && displayedApps.length === 0 ? (

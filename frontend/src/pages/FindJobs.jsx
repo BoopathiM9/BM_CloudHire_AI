@@ -74,9 +74,14 @@ export default function FindJobs({ onViewJobDetails, onApplyJob }) {
 
         {currentUser?.role === "CANDIDATE" && (
           <div className="candidate-status-box">
-            <span className="text-muted text-xs">Logged in as</span>
-            <span className="font-semibold">{currentUser.name}</span>
-            <span className="badge badge-subtle">{candidateApplications.length} Applied</span>
+            <div className="avatar-circle-sm">
+              <User size={14} />
+            </div>
+            <div>
+              <div className="text-[11px] text-muted leading-tight">Candidate Profile</div>
+              <div className="font-bold text-slate-900 text-xs">{currentUser.name}</div>
+            </div>
+            <span className="badge badge-primary">{candidateApplications.length} Applied</span>
           </div>
         )}
       </div>
