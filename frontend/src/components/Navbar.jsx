@@ -38,14 +38,12 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
   // Count pending applications awaiting admin review
   const pendingCount = applications.filter(a => a.status === "Pending Review" || a.status === "Submitted" || a.status === "Under Review").length;
 
-  // Navigation Items for Admin Portal (Applications & Approvals first)
+  // Navigation Items for Admin Portal (Focused & Clean)
   const recruiterNavItems = [
     { id: "applications", label: "Applications & Approvals", icon: Users, badge: pendingCount > 0 ? pendingCount : applications.length },
     { id: "jobs", label: "Job Management", icon: Briefcase },
-    { id: "dashboard", label: "Overview", icon: LayoutDashboard },
-    { id: "matching", label: "Candidate Matching", icon: Sliders, badgeAvail: true },
-    { id: "resumes", label: "Candidate Pool", icon: FileText },
-    { id: "history", label: "Assignments & History", icon: History },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "resumes", label: "Candidate Pool", icon: FileText }
   ];
 
   // Navigation Items for Candidate (Available Jobs first)
@@ -129,7 +127,7 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
             </div>
           ) : (
             /* Logged-In User Profile & Direct Sign Out */
-            <div className="flex items-center gap-2">
+            <div className="nav-user-cluster">
               <div className="profile-menu-container">
                 <button 
                   className="profile-btn"
@@ -202,17 +200,17 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
                 )}
               </div>
 
-              {/* 1-Click Visible Sign Out Button */}
+              {/* 1-Click Styled Sign Out Button */}
               <button
                 type="button"
                 onClick={() => {
                   logoutUser();
                 }}
-                className="btn btn-outline btn-sm flex items-center gap-1.5 text-slate-200 border-slate-700 hover:bg-slate-800"
+                className="btn-nav-signout"
                 title="Sign out and return to Gateway Login Page"
               >
                 <LogOut size={13} />
-                <span className="hidden-mobile">Sign Out</span>
+                <span>Sign Out</span>
               </button>
             </div>
           )}

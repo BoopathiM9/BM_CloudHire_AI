@@ -256,7 +256,7 @@ export default function ApplicationManagement({ setActiveTab }) {
   };
 
   return (
-    <div className="page-container">
+    <div className="page-container admin-page-container">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="toast-notification animate-slide-in">
@@ -266,19 +266,15 @@ export default function ApplicationManagement({ setActiveTab }) {
       )}
 
       {/* Header */}
-      <div className="dashboard-header-flex">
+      <div className="admin-header-flex">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="badge badge-primary">Admin / Recruiter Workspace</span>
-            <span className="badge badge-emerald">Live Decisions Active</span>
-          </div>
-          <h1 className="page-title">Candidate Application Management</h1>
-          <p className="page-subtitle">
-            Inspect inbound candidate applications, review document-style resumes, analyze AI rubrics, and accept or reject candidates with 1 click.
+          <h1 className="admin-header-title">Candidate Applications & Approvals</h1>
+          <p className="admin-header-subtitle">
+            Inspect incoming candidate applications, review technical qualifications, and approve or reject submissions with 1 click.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="admin-header-actions">
           {/* View Mode Toggle */}
           <div className="view-mode-toggle">
             <button 
@@ -309,7 +305,8 @@ export default function ApplicationManagement({ setActiveTab }) {
 
           <button 
             onClick={() => setActiveTab("jobs")}
-            className="btn btn-outline"
+            className="btn btn-primary"
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
           >
             <Briefcase size={15} />
             <span>Job Requisitions</span>
@@ -317,115 +314,119 @@ export default function ApplicationManagement({ setActiveTab }) {
         </div>
       </div>
 
-      {/* Metrics Quick Filter Bar */}
-      <div className="metrics-quick-bar mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* Metrics Quick Filter Bar - 4 Column Responsive Grid */}
+      <div className="admin-metrics-grid">
         <div 
           onClick={() => setSelectedStatusFilter("ALL")}
-          className={`card p-3 cursor-pointer transition ${selectedStatusFilter === "ALL" ? "border-primary bg-primary-subtle" : "hover:border-slate-300"}`}
+          className={`admin-metric-card ${selectedStatusFilter === "ALL" ? "active" : ""}`}
         >
-          <div className="text-xs text-muted font-medium">All Applications</div>
-          <div className="text-xl font-bold text-slate-800">{metrics.total}</div>
+          <div className="admin-metric-top">
+            <span className="admin-metric-label">
+              <Users size={14} />
+              <span>All Applications</span>
+            </span>
+          </div>
+          <div className="admin-metric-count">{metrics.total}</div>
         </div>
 
         <div 
           onClick={() => setSelectedStatusFilter("PENDING_REVIEW")}
-          className={`card p-3 cursor-pointer transition ${selectedStatusFilter === "PENDING_REVIEW" ? "border-amber-500 bg-amber-50" : "hover:border-slate-300"}`}
-          style={selectedStatusFilter === "PENDING_REVIEW" ? { borderColor: '#f59e0b', background: '#fef3c7' } : {}}
+          className={`admin-metric-card pending ${selectedStatusFilter === "PENDING_REVIEW" ? "active" : ""}`}
         >
-          <div className="flex items-center gap-1.5 text-xs text-amber-800 font-semibold">
-            <Clock size={13} />
-            <span>Pending Review</span>
+          <div className="admin-metric-top">
+            <span className="admin-metric-label" style={{ color: "#d97706" }}>
+              <Clock size={14} />
+              <span>Pending Review</span>
+            </span>
           </div>
-          <div className="text-xl font-bold text-amber-900">{metrics.pendingReview}</div>
+          <div className="admin-metric-count" style={{ color: "#b45309" }}>{metrics.pendingReview}</div>
         </div>
 
         <div 
           onClick={() => setSelectedStatusFilter("Approved")}
-          className={`card p-3 cursor-pointer transition ${selectedStatusFilter === "Approved" ? "border-emerald-500 bg-emerald-50" : "hover:border-slate-300"}`}
-          style={selectedStatusFilter === "Approved" ? { borderColor: '#10b981', background: '#ecfdf5' } : {}}
+          className={`admin-metric-card approved ${selectedStatusFilter === "Approved" ? "active" : ""}`}
         >
-          <div className="flex items-center gap-1.5 text-xs text-emerald-800 font-semibold">
-            <CheckCircle2 size={13} />
-            <span>Approved</span>
+          <div className="admin-metric-top">
+            <span className="admin-metric-label" style={{ color: "#059669" }}>
+              <CheckCircle2 size={14} />
+              <span>Approved</span>
+            </span>
           </div>
-          <div className="text-xl font-bold text-emerald-900">{metrics.approved}</div>
+          <div className="admin-metric-count" style={{ color: "#047857" }}>{metrics.approved}</div>
         </div>
 
         <div 
           onClick={() => setSelectedStatusFilter("Not Selected")}
-          className={`card p-3 cursor-pointer transition ${selectedStatusFilter === "Not Selected" ? "border-rose-400 bg-rose-50" : "hover:border-slate-300"}`}
+          className={`admin-metric-card rejected ${selectedStatusFilter === "Not Selected" ? "active" : ""}`}
         >
-          <div className="flex items-center gap-1.5 text-xs text-rose-700 font-semibold">
-            <X size={13} />
-            <span>Not Selected</span>
+          <div className="admin-metric-top">
+            <span className="admin-metric-label" style={{ color: "#e11d48" }}>
+              <X size={14} />
+              <span>Not Selected</span>
+            </span>
           </div>
-          <div className="text-xl font-bold text-rose-700">{metrics.notSelected}</div>
+          <div className="admin-metric-count" style={{ color: "#be123c" }}>{metrics.notSelected}</div>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="candidate-search-bar mt-4">
-        <div className="search-input-wrap">
-          <Search size={18} className="search-icon" />
+      <div className="admin-toolbar-row">
+        <div className="admin-search-wrap">
+          <Search size={17} className="search-icon" />
           <input 
             type="text" 
             placeholder="Search applicants by name, email, skills, or application ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            className="admin-search-input"
           />
         </div>
 
-        <div className="flex gap-2">
-          {/* Job Filter */}
-          <div className="filter-select-wrap">
-            <select 
-              value={selectedJobFilter} 
-              onChange={(e) => setSelectedJobFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="ALL">All Positions ({applications.length})</option>
-              {jobs.map(j => (
-                <option key={j.id || j.jobId} value={j.id || j.jobId}>
-                  {j.title}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="admin-filter-selects">
+          <select 
+            value={selectedJobFilter} 
+            onChange={(e) => setSelectedJobFilter(e.target.value)}
+            className="admin-select"
+          >
+            <option value="ALL">All Positions ({applications.length})</option>
+            {jobs.map(j => (
+              <option key={j.id || j.jobId} value={j.id || j.jobId}>
+                {j.title}
+              </option>
+            ))}
+          </select>
 
-          {/* Status Filter */}
-          <div className="filter-select-wrap">
-            <select 
-              value={selectedStatusFilter} 
-              onChange={(e) => setSelectedStatusFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="ALL">All Statuses ({applications.length})</option>
-              <option value="PENDING_REVIEW">Pending Review ({metrics.pendingReview})</option>
-              <option value="Approved">Approved ({metrics.approved})</option>
-              <option value="Not Selected">Not Selected ({metrics.notSelected})</option>
-            </select>
-          </div>
+          <select 
+            value={selectedStatusFilter} 
+            onChange={(e) => setSelectedStatusFilter(e.target.value)}
+            className="admin-select"
+          >
+            <option value="ALL">All Statuses ({applications.length})</option>
+            <option value="PENDING_REVIEW">Pending Review ({metrics.pendingReview})</option>
+            <option value="Approved">Approved ({metrics.approved})</option>
+            <option value="Not Selected">Not Selected ({metrics.notSelected})</option>
+          </select>
         </div>
       </div>
 
       {/* VIEW 1: TABLE VIEW */}
       {viewMode === "table" && (
-        <div className="card mt-4 overflow-hidden">
-          <div className="card-header-flex">
+        <div className="admin-table-card">
+          <div className="admin-table-header-box">
             <div>
-              <h2 className="card-title">Applicant Roster ({filteredApplications.length})</h2>
-              <p className="card-subtitle">Admin review workspace: Approve or reject candidate applications with 1 click.</p>
+              <h2 className="admin-table-title">Applicant Roster ({filteredApplications.length})</h2>
+              <p className="admin-table-subtitle">Review incoming applications: Grant 1-click approvals or open technical details.</p>
             </div>
           </div>
 
           {filteredApplications.length === 0 ? (
-            <div className="p-8 text-center text-muted">
-              <Users size={38} className="mx-auto mb-2 text-muted" />
-              <p>No applications match your current filters.</p>
+            <div style={{ padding: "3rem", textAlign: "center", color: "#64748b" }}>
+              <Users size={40} style={{ margin: "0 auto 0.75rem", opacity: 0.5 }} />
+              <p style={{ margin: 0 }}>No applications match your current filters.</p>
             </div>
           ) : (
-            <div className="table-responsive">
-              <table className="data-table">
+            <div style={{ overflowX: "auto" }}>
+              <table className="admin-data-table">
                 <thead>
                   <tr>
                     <th>Applicant Profile</th>
@@ -434,62 +435,71 @@ export default function ApplicationManagement({ setActiveTab }) {
                     <th>Experience & Skills</th>
                     <th>Submitted</th>
                     <th>Status</th>
-                    <th style={{ minWidth: "240px" }}>Admin Actions</th>
+                    <th style={{ minWidth: "220px" }}>Admin Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredApplications.map(app => {
                     const match = getAppMatchDetails(app);
                     return (
-                      <tr key={app.id} className="hover:bg-slate-50 transition">
+                      <tr key={app.id}>
                         <td>
-                          <div className="font-semibold text-sm text-slate-900">{app.candidateName}</div>
-                          <div className="text-xs text-muted">{app.candidateEmail}</div>
-                          <span className="reference-pill text-xs mt-1 inline-block">{app.id}</span>
+                          <div style={{ fontWeight: 700, color: "#0f172a", fontSize: "0.92rem" }}>{app.candidateName}</div>
+                          <div style={{ color: "#64748b", fontSize: "0.78rem", marginTop: "1px" }}>{app.candidateEmail}</div>
+                          <span style={{ display: "inline-block", fontFamily: "monospace", fontSize: "0.72rem", fontWeight: 600, background: "#f1f5f9", color: "#475569", padding: "2px 6px", borderRadius: "4px", marginTop: "4px" }}>
+                            {app.id}
+                          </span>
                         </td>
                         <td>
-                          <div className="font-medium text-sm text-slate-800">{app.jobTitle}</div>
-                          <span className="text-xs text-muted">{app.jobId}</span>
+                          <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "0.88rem" }}>{app.jobTitle}</div>
+                          <span style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{app.jobId}</span>
                         </td>
                         <td>
                           {match ? (
-                            <div className="flex items-center gap-2">
-                              <span className={`badge ${match.totalScore >= 80 ? "badge-success font-bold" : match.totalScore >= 60 ? "badge-primary" : "badge-subtle"}`}>
-                                {match.totalScore}% Match
-                              </span>
-                            </div>
+                            <span 
+                              style={
+                                match.totalScore >= 80 
+                                  ? { background: '#dcfce7', color: '#15803d', border: '1px solid #86efac', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, fontSize: '0.78rem' }
+                                  : match.totalScore >= 60 
+                                    ? { background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, fontSize: '0.78rem' }
+                                    : { background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, fontSize: '0.78rem' }
+                              }
+                            >
+                              {match.totalScore}% Match
+                            </span>
                           ) : (
-                            <span className="text-xs text-muted">—</span>
+                            <span style={{ color: "#94a3b8", fontSize: "0.8rem" }}>—</span>
                           )}
                         </td>
                         <td>
-                          <div className="text-xs font-semibold mb-1 text-slate-700">{app.experienceYears} Yrs Experience</div>
-                          <div className="flex flex-wrap gap-1 max-w-xs">
+                          <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>
+                            {app.experienceYears} Yrs Experience
+                          </div>
+                          <div className="skills-badge-list">
                             {(app.skills || []).slice(0, 3).map((s, idx) => (
-                              <span key={idx} className="badge badge-subtle text-xs">{s}</span>
+                              <span key={idx} className="skill-tag">{s}</span>
                             ))}
                             {(app.skills || []).length > 3 && (
-                              <span className="text-xs text-muted">+{app.skills.length - 3}</span>
+                              <span style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 600 }}>+{app.skills.length - 3}</span>
                             )}
                           </div>
                         </td>
-                        <td className="text-xs text-muted whitespace-nowrap">
+                        <td style={{ color: "#64748b", fontSize: "0.8rem", whiteSpace: "nowrap" }}>
                           {new Date(app.submittedAt).toLocaleDateString()}
                         </td>
                         <td>
                           {getStatusBadge(app.status)}
                         </td>
                         <td>
-                          <div className="flex items-center gap-1.5 flex-wrap">
+                          <div className="admin-actions-cell">
                             {/* 1-Click Approve */}
                             {app.status !== "Approved" && (
                               <button 
                                 onClick={(e) => handleQuickApprove(e, app)}
-                                className="btn btn-xs btn-success font-semibold flex items-center gap-1"
-                                style={{ background: '#16a34a', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px' }}
+                                className="btn-approve"
                                 title="Approve candidate application"
                               >
-                                <CheckCircle2 size={12} />
+                                <CheckCircle2 size={13} />
                                 <span>Approve</span>
                               </button>
                             )}
@@ -498,11 +508,10 @@ export default function ApplicationManagement({ setActiveTab }) {
                             {app.status !== "Not Selected" && (
                               <button 
                                 onClick={(e) => handleQuickReject(e, app)}
-                                className="btn btn-xs btn-outline font-semibold flex items-center gap-1"
-                                style={{ color: '#dc2626', borderColor: '#fca5a5', background: '#fff', padding: '4px 8px', borderRadius: '4px' }}
+                                className="btn-reject"
                                 title="Reject candidate application"
                               >
-                                <X size={12} />
+                                <X size={13} />
                                 <span>Reject</span>
                               </button>
                             )}
@@ -510,11 +519,10 @@ export default function ApplicationManagement({ setActiveTab }) {
                             {/* Review & Resume View */}
                             <button 
                               onClick={() => handleOpenReview(app, "overview")}
-                              className="btn btn-outline btn-xs flex items-center gap-1"
-                              style={{ padding: '4px 8px', borderRadius: '4px' }}
+                              className="btn-details"
                               title="Open Full Review & Resume"
                             >
-                              <Eye size={12} />
+                              <Eye size={13} />
                               <span>Details</span>
                             </button>
                           </div>
