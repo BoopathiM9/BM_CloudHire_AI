@@ -324,7 +324,7 @@ export default function ApplicationManagement({ setActiveTab }) {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+        <div className="requisition-picker-grid">
           {jobs.map(job => {
             const jId = job.id || job.jobId;
             const isSelected = selectedJobFilter === jId;
@@ -334,12 +334,7 @@ export default function ApplicationManagement({ setActiveTab }) {
               <div 
                 key={jId}
                 onClick={() => setSelectedJobFilter(jId)}
-                className={`p-3 rounded-lg border cursor-pointer transition ${
-                  isSelected 
-                    ? "border-emerald-600 bg-emerald-50/50 shadow-sm" 
-                    : "border-slate-200 bg-white hover:border-slate-300"
-                }`}
-                style={isSelected ? { borderColor: "var(--forest-green)", background: "var(--pale-mint)" } : {}}
+                className={`requisition-picker-card ${isSelected ? "active" : ""}`}
               >
                 <div className="flex justify-between items-start mb-1">
                   <span className="font-bold text-xs truncate max-w-[170px]" style={{ color: "var(--forest-green)" }}>
@@ -360,12 +355,8 @@ export default function ApplicationManagement({ setActiveTab }) {
           {/* All Requisitions Option */}
           <div 
             onClick={() => setSelectedJobFilter("ALL")}
-            className={`p-3 rounded-lg border cursor-pointer transition flex flex-col justify-center text-center ${
-              selectedJobFilter === "ALL" 
-                ? "border-emerald-600 bg-emerald-50/50 shadow-sm" 
-                : "border-slate-200 bg-white hover:border-slate-300"
-            }`}
-            style={selectedJobFilter === "ALL" ? { borderColor: "var(--forest-green)", background: "var(--pale-mint)" } : {}}
+            className={`requisition-picker-card ${selectedJobFilter === "ALL" ? "active" : ""}`}
+            style={{ justifyContent: "center", textAlign: "center" }}
           >
             <span className="font-bold text-xs" style={{ color: "var(--forest-green)" }}>
               All Requisitions

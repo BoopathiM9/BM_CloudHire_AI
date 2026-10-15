@@ -91,7 +91,7 @@ export const initialApplications = [
     skills: ["Python", "AWS Lambda", "DynamoDB", "React", "API Gateway", "Docker", "AWS CDK"],
     resumeFilename: "arun_krishnan_resume.pdf",
     status: "Approved",
-    statusNote: "Approved by Admin Boopathi. Candidate advanced to Technical Interview round.",
+    statusNote: "Approved by Administrator. Candidate advanced to Technical Interview round.",
     submittedAt: "2026-10-11T12:30:00Z",
     updatedAt: "2026-10-12T09:15:00Z"
   },
@@ -148,7 +148,7 @@ export const initialApplications = [
 export const initialUsers = [
   {
     id: "USR-ADMIN-01",
-    name: "Boopathi M (Admin)",
+    name: "Administrator",
     email: "admin",
     username: "admin",
     role: "RECRUITER",
@@ -157,7 +157,7 @@ export const initialUsers = [
   },
   {
     id: "USR-ADMIN-02",
-    name: "Boopathi M (Admin)",
+    name: "Administrator",
     email: "admin@bmcloudhire.com",
     username: "admin",
     role: "RECRUITER",
@@ -166,7 +166,7 @@ export const initialUsers = [
   },
   {
     id: "USR-REC-01",
-    name: "Boopathi M",
+    name: "Administrator",
     email: "recruiter@bmcloudhire.com",
     role: "RECRUITER",
     title: "Principal Talent Acquisition Lead",

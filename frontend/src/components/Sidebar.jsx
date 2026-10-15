@@ -181,15 +181,17 @@ export default function Sidebar({
             {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
 
-          {/* Mobile Close Button */}
-          <button 
-            type="button"
-            onClick={() => setMobileOpen(false)}
-            className="sidebar-mobile-close-btn visible-mobile"
-            aria-label="Close menu"
-          >
-            <X size={18} />
-          </button>
+          {/* Mobile Close Button - Render only on mobile drawer */}
+          {mobileOpen && (
+            <button 
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              className="sidebar-mobile-close-btn visible-mobile"
+              aria-label="Close menu"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
 
         {/* Portal Scope Tag */}
@@ -257,18 +259,18 @@ export default function Sidebar({
         {/* Sidebar Footer: User Profile & Logout */}
         <div className="sidebar-footer">
           <div className="sidebar-user-block">
-            <div className="user-avatar" title={currentUser?.name}>
-              {getUserInitials(currentUser?.name)}
+            <div className="user-avatar" title={isRecruiter ? "Administrator" : currentUser?.name}>
+              {isRecruiter ? "AD" : getUserInitials(currentUser?.name)}
             </div>
 
             {!collapsed && (
               <div className="user-meta">
-                <div className="user-name" title={currentUser?.name}>
-                  {currentUser?.name || "User"}
+                <div className="user-name" title={isRecruiter ? "Administrator" : currentUser?.name}>
+                  {isRecruiter ? "Administrator" : (currentUser?.name || "User")}
                 </div>
                 <div className="user-role-line">
                   <span className={`user-role-badge ${isRecruiter ? "role-admin" : "role-cand"}`}>
-                    {isRecruiter ? "Recruiter" : "Candidate"}
+                    {isRecruiter ? "Administrator" : "Candidate"}
                   </span>
                 </div>
               </div>

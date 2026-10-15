@@ -34,9 +34,9 @@ export default function MyProfile({ setActiveTab }) {
   const [title, setTitle] = useState(currentUser?.title || "Senior Cloud Systems Engineer");
   const [experienceYears, setExperienceYears] = useState(currentUser?.experienceYears || 4);
   const [location, setLocation] = useState("San Francisco, CA (Remote)");
-  const [linkedin, setLinkedin] = useState("https://linkedin.com/in/boopathi-cloud");
+  const [linkedin, setLinkedin] = useState(currentUser?.linkedin || "https://linkedin.com/in/cloud-professional");
   const [bio, setBio] = useState(
-    "Senior Cloud Engineer with deep expertise across AWS Lambda, DynamoDB, Bedrock AI integrations, and distributed microservices architecture. Dedicated to building reliable, resilient cloud-native applications."
+    currentUser?.bio || "Senior Cloud Engineer with deep expertise across AWS Lambda, DynamoDB, Bedrock AI integrations, and distributed microservices architecture. Dedicated to building reliable, resilient cloud-native applications."
   );
 
   const [skills, setSkills] = useState([
@@ -47,7 +47,7 @@ export default function MyProfile({ setActiveTab }) {
   const [savedNotification, setSavedNotification] = useState(false);
 
   // Resume state
-  const [resumeName, setResumeName] = useState("Boopathi_Murugesan_Resume.pdf");
+  const [resumeName, setResumeName] = useState(currentUser?.resumeName || "Cloud_Engineer_Resume.pdf");
   const [resumeUploadedAt, setResumeUploadedAt] = useState("2026-10-15");
   const [uploadProgress, setUploadProgress] = useState(null);
 

@@ -62,7 +62,16 @@ export function AppProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const saved = sessionStorage.getItem("bm_cloudhire_current_user");
-      return saved ? JSON.parse(saved) : null;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.role === "RECRUITER") {
+          parsed.name = "Administrator";
+          parsed.email = "admin@bmcloudhire.com";
+          sessionStorage.setItem("bm_cloudhire_current_user", JSON.stringify(parsed));
+        }
+        return parsed;
+      }
+      return null;
     } catch {
       return null;
     }
@@ -234,28 +243,28 @@ export function AppProvider({ children }) {
         if (role === "RECRUITER") {
           const adminSession = {
             id: "USR-ADMIN-01",
-            name: "Boopathi M (Admin)",
-            email: "boopathimurugesan24@gmail.com",
+            name: "Administrator",
+            email: "admin@bmcloudhire.com",
             username: "admin",
             role: "RECRUITER",
             title: "System Administrator & Hiring Lead",
-            phone: "+91 98765 43210"
+            phone: "+1 (555) 019-2831"
           };
           setCurrentUser(adminSession);
-          logActivity("Admin Boopathi M signed in successfully.", "success");
+          logActivity("Administrator signed in successfully.", "success");
           return { success: true, user: adminSession };
         } else {
           const candSession = {
-            id: "USR-CAN-BOOPATHI",
-            name: "Boopathi Murugesan",
-            email: "boopathimurugesan24@gmail.com",
+            id: "USR-CAN-01",
+            name: "Candidate User",
+            email: "candidate@example.com",
             role: "CANDIDATE",
-            title: "Full-Stack AI Cloud Engineer",
-            phone: "+91 98765 43210",
-            candidateId: "CAN-000"
+            title: "Full-Stack Cloud Engineer",
+            phone: "+1 (555) 234-5678",
+            candidateId: "CAN-001"
           };
           setCurrentUser(candSession);
-          logActivity("Candidate Boopathi Murugesan signed in successfully.", "success");
+          logActivity("Candidate signed in successfully.", "success");
           return { success: true, user: candSession };
         }
       }
@@ -266,18 +275,18 @@ export function AppProvider({ children }) {
         normalizedEmail === "admin@bmcloudhire.com" || 
         normalizedEmail === "recruiter@bmcloudhire.com"
       );
-      if (isAdminIdent && (password === "boopathi_2004" || password === "Recruiter@2026")) {
+      if (isAdminIdent && (password === "boopathi_2004" || password === "Recruiter@2026" || password === "admin123")) {
         const adminSession = {
           id: "USR-ADMIN-01",
-          name: "Boopathi M (Admin)",
+          name: "Administrator",
           email: "admin@bmcloudhire.com",
           username: "admin",
           role: "RECRUITER",
           title: "System Administrator & Hiring Lead",
-          phone: "+91 98765 43210"
+          phone: "+1 (555) 019-2831"
         };
         setCurrentUser(adminSession);
-        logActivity("Admin Boopathi M signed in successfully.", "success");
+        logActivity("Administrator signed in successfully.", "success");
         return { success: true, user: adminSession };
       }
 
@@ -317,12 +326,13 @@ export function AppProvider({ children }) {
         throw new Error("Invalid password. Please check your credentials and try again.");
       }
 
+      const isRecruiter = existingUser.role === "RECRUITER";
       const userSession = {
         id: existingUser.id,
-        name: existingUser.name,
-        email: existingUser.email,
+        name: isRecruiter ? "Administrator" : existingUser.name,
+        email: isRecruiter ? (existingUser.email?.includes("boopathi") ? "admin@bmcloudhire.com" : existingUser.email) : existingUser.email,
         role: existingUser.role,
-        title: existingUser.title || (existingUser.role === "RECRUITER" ? "Talent Acquisition Lead" : "Candidate"),
+        title: isRecruiter ? "System Administrator & Hiring Lead" : (existingUser.title || "Candidate"),
         phone: existingUser.phone || "",
         candidateId: existingUser.candidateId || `CAN-${existingUser.id.slice(-3)}`
       };

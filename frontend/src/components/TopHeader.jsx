@@ -180,10 +180,10 @@ export default function TopHeader({
             className="header-profile-pill"
           >
             <div className="header-avatar">
-              {getUserInitials(currentUser?.name)}
+              {isRecruiter ? "AD" : getUserInitials(currentUser?.name)}
             </div>
             <div className="header-user-info hidden-mobile">
-              <span className="header-user-name">{currentUser?.name || "User"}</span>
+              <span className="header-user-name">{isRecruiter ? "Administrator" : (currentUser?.name || "User")}</span>
               <span className="header-user-role">{isRecruiter ? "Administrator" : "Candidate"}</span>
             </div>
             <ChevronDown size={14} className="text-muted hidden-mobile" />
@@ -192,10 +192,10 @@ export default function TopHeader({
           {showProfileMenu && (
             <div className="dropdown-panel profile-menu-panel">
               <div className="profile-menu-user-card">
-                <div className="font-bold text-sm text-slate-900">{currentUser?.name}</div>
-                <div className="text-xs text-muted">{currentUser?.email}</div>
+                <div className="font-bold text-sm text-slate-900">{isRecruiter ? "Administrator" : (currentUser?.name || "User")}</div>
+                <div className="text-xs text-muted">{isRecruiter ? "admin@bmcloudhire.com" : (currentUser?.email || "")}</div>
                 <span className={`badge ${isRecruiter ? "badge-forest" : "badge-mint"} text-xs mt-1.5`}>
-                  {isRecruiter ? "Recruiter Account" : "Candidate Account"}
+                  {isRecruiter ? "Administrator Account" : "Candidate Account"}
                 </span>
               </div>
 
