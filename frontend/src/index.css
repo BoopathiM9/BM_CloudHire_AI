@@ -6295,20 +6295,44 @@ body {
 }
 
 /* 10. Tables & Forms */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  text-align: left;
+}
+
 .data-table th {
   background-color: var(--page-bg) !important;
   color: var(--text-secondary) !important;
   border-bottom: 1px solid var(--border-color) !important;
+  font-size: 0.72rem !important;
   font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 0.85rem 1.15rem !important;
+  white-space: nowrap !important;
 }
 
 .data-table td {
+  padding: 0.95rem 1.15rem !important;
   border-bottom: 1px solid var(--border-color) !important;
+  vertical-align: middle !important;
   color: var(--text-primary) !important;
+  font-size: 0.82rem !important;
 }
 
 .data-table tr:hover {
   background-color: #F8FCFA !important;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none !important;
 }
 
 /* 11. Auth Page Forest & Mint Green Theme Override */

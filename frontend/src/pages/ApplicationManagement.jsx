@@ -487,21 +487,20 @@ export default function ApplicationManagement({ setActiveTab }) {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Candidate & ID</th>
-                    <th>Submission Date</th>
-                    <th>Resume Status</th>
-                    <th>Experience Summary</th>
-                    <th>Extracted Skills</th>
+                    <th>Candidate</th>
+                    <th>Applied Date</th>
+                    <th>Experience</th>
+                    <th>Top Skills</th>
                     <th>AI Match Score</th>
-                    <th>Application Status</th>
-                    <th style={{ minWidth: "260px" }}>Reviewer Actions</th>
+                    <th>Stage Status</th>
+                    <th style={{ textAlign: "right", minWidth: "180px" }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredApplications.map(app => {
                     const match = getAppMatchDetails(app);
                     return (
-                      <tr key={app.id} className="hover:bg-slate-50 transition">
+                      <tr key={app.id}>
                         {/* 1. Candidate Name & ID */}
                         <td>
                           <div className="font-bold text-sm text-forest">{app.candidateName}</div>
@@ -510,39 +509,30 @@ export default function ApplicationManagement({ setActiveTab }) {
                         </td>
 
                         {/* 2. Submission Date */}
-                        <td className="text-xs text-slate-600 whitespace-nowrap">
-                          {new Date(app.submittedAt).toLocaleDateString()}
+                        <td className="text-xs text-muted whitespace-nowrap">
+                          {new Date(app.submittedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                         </td>
 
-                        {/* 3. Resume Status */}
-                        <td>
-                          <span className="badge badge-mint text-[11px] inline-flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-                            Processed
-                          </span>
-                        </td>
-
-                        {/* 4. Experience Summary */}
-                        <td>
-                          <div className="text-xs font-semibold text-slate-800">
-                            {app.experienceYears} Years Exp
+                        {/* 3. Experience */}
+                        <td className="whitespace-nowrap">
+                          <div className="text-xs font-bold text-slate-800">
+                            {app.experienceYears} Yrs Exp
                           </div>
-                          <div className="text-[11px] text-muted">Verified background</div>
                         </td>
 
-                        {/* 5. Extracted Skills */}
+                        {/* 4. Top Skills (Clean single-line flex chips) */}
                         <td>
-                          <div className="flex flex-wrap gap-1 max-w-[200px]">
-                            {(app.skills || []).slice(0, 3).map((s, idx) => (
-                              <span key={idx} className="badge badge-subtle text-[11px]">{s}</span>
+                          <div className="flex items-center gap-1.5 flex-nowrap">
+                            {(app.skills || []).slice(0, 2).map((s, idx) => (
+                              <span key={idx} className="badge badge-subtle text-xs whitespace-nowrap">{s}</span>
                             ))}
-                            {(app.skills || []).length > 3 && (
-                              <span className="text-[11px] text-muted">+{app.skills.length - 3}</span>
+                            {(app.skills || []).length > 2 && (
+                              <span className="text-xs text-muted font-medium whitespace-nowrap">+{app.skills.length - 2}</span>
                             )}
                           </div>
                         </td>
 
-                        {/* 6. AI Match Score */}
+                        {/* 5. AI Match Score */}
                         <td>
                           {match ? (
                             <div>
@@ -556,15 +546,14 @@ export default function ApplicationManagement({ setActiveTab }) {
                           )}
                         </td>
 
-                        {/* 7. Application Status */}
+                        {/* 6. Application Status */}
                         <td>
                           {getStatusBadge(app.status)}
                         </td>
 
-                        {/* 8. Reviewer Actions (Under Review, Shortlist, Approve, Reject, More Info) */}
-                        <td>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            {/* Detailed Inspection */}
+                        {/* 7. Actions */}
+                        <td style={{ textAlign: "right" }}>
+                          <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
                             <button
                               type="button"
                               onClick={() => handleOpenReview(app, "overview")}
@@ -575,60 +564,26 @@ export default function ApplicationManagement({ setActiveTab }) {
                               <span>Review</span>
                             </button>
 
-                            {/* Mark Under Review */}
-                            {app.status === "Submitted" && (
-                              <button
-                                type="button"
-                                onClick={(e) => handleFastStatus(e, app, "Under Review", "Application moved into active recruiter review.")}
-                                className="btn btn-outline btn-xs"
-                                title="Move to Under Review"
-                              >
-                                <span>Under Review</span>
-                              </button>
-                            )}
-
-                            {/* Shortlist */}
-                            {app.status !== "Shortlisted" && app.status !== "Approved" && (
-                              <button
-                                type="button"
-                                onClick={(e) => handleFastStatus(e, app, "Shortlisted", "Candidate cleared technical benchmarks and is shortlisted.")}
-                                className="btn btn-outline btn-xs text-emerald-800"
-                                style={{ background: "var(--pale-mint)", borderColor: "var(--mint-green)" }}
-                                title="Shortlist candidate"
-                              >
-                                <Check size={12} />
-                                <span>Shortlist</span>
-                              </button>
-                            )}
-
-                            {/* Approve (Next Stage) */}
                             {app.status !== "Approved" && (
                               <button
                                 type="button"
                                 onClick={() => openConfirmDecisionModal(app, "Approve")}
                                 className="btn btn-primary btn-xs"
                                 style={{ background: "var(--forest-green)", color: "#FFFFFF" }}
-                                title="Approve candidate to proceed to next recruitment stage"
+                                title="Approve candidate"
                               >
                                 <Award size={12} />
                                 <span>Approve</span>
                               </button>
                             )}
 
-                            {/* Request More Information */}
-                            {app.status !== "Rejected" && (
-                              <button
-                                type="button"
-                                onClick={() => openConfirmDecisionModal(app, "More Information Required")}
-                                className="btn btn-outline btn-xs text-purple-700"
-                                title="Request additional information from candidate"
-                              >
-                                <HelpCircle size={12} />
-                                <span>Info</span>
-                              </button>
+                            {app.status === "Approved" && (
+                              <span className="text-xs text-emerald-700 font-semibold flex items-center gap-1">
+                                <CheckCircle2 size={13} />
+                                <span>Approved</span>
+                              </span>
                             )}
 
-                            {/* Reject */}
                             {app.status !== "Rejected" && (
                               <button
                                 type="button"
