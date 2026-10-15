@@ -26,7 +26,8 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
     currentUser, 
     logoutUser, 
     resetDemoData, 
-    switchDemoRole 
+    switchDemoRole,
+    backendConnected 
   } = useApp();
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
