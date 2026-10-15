@@ -93,9 +93,6 @@ export default function LandingPage({ setActiveTab, onOpenAuth }) {
               <p className="text-xs text-slate-300 mb-3 leading-relaxed">
                 Sign in with administrative credentials to review pending candidate applications, grant 1-click approvals, and create new requisitions.
               </p>
-              <div className="text-[11px] bg-slate-800/80 p-2 rounded text-slate-300 font-mono mb-3">
-                Username: <strong className="text-blue-300">admin</strong> | Password: <strong className="text-blue-300">boopathi_2004</strong>
-              </div>
               <button 
                 onClick={() => onOpenAuth("recruiter-login")}
                 className="btn btn-light btn-sm w-full font-semibold flex items-center justify-center gap-1.5"

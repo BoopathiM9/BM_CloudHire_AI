@@ -233,7 +233,7 @@ export function AppProvider({ children }) {
       const existingUser = users.find(u => u.email.toLowerCase() === normalizedEmail || u.username === normalizedEmail);
 
       if (!existingUser) {
-        throw new Error("No account found with this username or email. For Admin, use username 'admin' and password 'boopathi_2004'.");
+        throw new Error("No account found with this username or email. Please check your credentials.");
       }
 
       if (role && existingUser.role !== role && existingUser.role !== "RECRUITER") {

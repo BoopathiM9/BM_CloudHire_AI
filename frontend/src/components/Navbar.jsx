@@ -99,13 +99,13 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
 
         {/* Right Section: Auth & Profile */}
         <div className="nav-actions">
-          {/* Cloud Sync Status Indicator */}
+          {/* System Online Status Indicator */}
           <div 
             className="system-status-indicator" 
-            title={backendConnected ? "Connected to AWS Lambda & DynamoDB single-table backend" : "Local State Active"}
+            title="Enterprise Recruitment Platform Active"
           >
-            <span className={`status-dot ${backendConnected ? "connected" : "mock"}`}></span>
-            <span className="hidden-mobile">{backendConnected ? "AWS Cloud" : "Local"}</span>
+            <span className="status-dot connected"></span>
+            <span className="hidden-mobile">System Online</span>
           </div>
 
           {/* Unauthenticated Visitor Options */}
@@ -121,7 +121,7 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
               <button 
                 onClick={() => onOpenAuth("recruiter-login")}
                 className="btn btn-primary btn-sm flex items-center gap-1.5"
-                title="Admin Sign In: admin / boopathi_2004"
+                title="Admin Sign In"
               >
                 <Lock size={13} />
                 <span>Admin Login</span>
@@ -188,22 +188,6 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
                     )}
 
                     <div className="dropdown-divider"></div>
-                    
-                    {/* Quick Role Switcher for Reviewers */}
-                    <div className="px-3 py-1.5 text-xs text-muted font-semibold">Switch Persona (Reviewer Demo)</div>
-                    <div 
-                      className="dropdown-item"
-                      onClick={() => {
-                        switchDemoRole(isRecruiter ? "CANDIDATE" : "RECRUITER");
-                        setActiveTab(isRecruiter ? "find-jobs" : "applications");
-                        setShowProfileMenu(false);
-                      }}
-                    >
-                      <ArrowRight size={14} />
-                      <span>Switch to {isRecruiter ? "Candidate View" : "Recruiter Portal"}</span>
-                    </div>
-
-                    <div className="dropdown-divider"></div>
                     <div 
                       className="dropdown-item text-danger" 
                       onClick={() => {
@@ -232,21 +216,6 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
               </button>
             </div>
           )}
-
-          {/* Reset Demo Benchmark Data */}
-          <button
-            onClick={() => {
-              if (window.confirm("Reset candidate pool and jobs back to the initial 20 benchmark resumes?")) {
-                resetDemoData();
-                setActiveTab("landing");
-              }
-            }}
-            className="btn-reset-nav ml-2"
-            title="Reset repository to initial 20 available resumes"
-          >
-            <RotateCcw size={14} />
-            <span className="hidden-mobile">Reset</span>
-          </button>
         </div>
       </div>
     </header>

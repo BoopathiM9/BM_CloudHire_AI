@@ -156,40 +156,6 @@ export default function CandidateAuthModal({ isOpen, onClose, initialMode = "can
             </div>
           )}
 
-          {/* Quick Demo Pre-Filled Buttons */}
-          <div className="demo-credentials-box">
-            <div className="demo-credentials-title">
-              <Sparkles size={14} className="text-primary" />
-              <span>Quick Login Credentials</span>
-            </div>
-            <div className="demo-buttons-row">
-              <button 
-                type="button"
-                className="btn btn-xs btn-primary font-semibold"
-                onClick={() => {
-                  setMode("recruiter-login");
-                  setEmail("admin");
-                  setPassword("boopathi_2004");
-                }}
-                title="Fill Admin credentials: admin / boopathi_2004"
-              >
-                Fill Admin (admin / boopathi_2004)
-              </button>
-              <button 
-                type="button"
-                className="btn btn-xs btn-outline"
-                onClick={() => {
-                  setMode("candidate-login");
-                  setEmail("arun.krishnan@example.com");
-                  setPassword("Candidate@2026");
-                }}
-                title="Fill candidate credentials"
-              >
-                Fill Candidate (Arun)
-              </button>
-            </div>
-          </div>
-
           {/* Form Content */}
           {mode === "candidate-register" ? (
             <form onSubmit={handleRegister} className="auth-form">
@@ -310,7 +276,7 @@ export default function CandidateAuthModal({ isOpen, onClose, initialMode = "can
                   <input 
                     type="password" 
                     required 
-                    placeholder={mode === "recruiter-login" ? "boopathi_2004" : "Enter your account password"}
+                    placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -338,10 +304,9 @@ export default function CandidateAuthModal({ isOpen, onClose, initialMode = "can
                     </button>
                   </p>
                 ) : mode === "recruiter-login" ? (
-                  <div className="p-2.5 rounded bg-slate-50 border border-slate-200 text-xs text-slate-700 text-center">
-                    <span className="font-semibold text-slate-800">Admin Credentials:</span><br />
-                    Username: <code className="font-mono font-bold text-primary">admin</code> | Password: <code className="font-mono font-bold text-primary">boopathi_2004</code>
-                  </div>
+                  <p className="text-xs text-muted text-center">
+                    Authorized administrative access only.
+                  </p>
                 ) : (
                   <p>
                     Already registered?{" "}

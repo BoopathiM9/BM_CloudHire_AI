@@ -123,7 +123,7 @@ function AppContent() {
                 <h2>Recruiter Authorization Required</h2>
                 <p>
                   You are attempting to access a protected talent acquisition workspace. 
-                  Please sign in with authorized recruiter credentials (admin / boopathi_2004) 
+                  Please sign in with authorized administrative credentials 
                   to view candidate resumes, run AI matching, and approve requisitions.
                 </p>
                 <div className="flex gap-3 mt-4">
