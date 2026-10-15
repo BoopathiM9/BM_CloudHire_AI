@@ -3558,15 +3558,78 @@ body {
   box-shadow: 0 10px 20px -3px rgba(15, 23, 42, 0.06);
 }
 
-/* Modal Backdrops Glassmorphism */
+/* Modal Backdrops Glassmorphism & Centering */
 .modal-backdrop, .modal-overlay {
-  backdrop-filter: blur(5px) saturate(160%);
-  background-color: rgba(15, 23, 42, 0.65) !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(8px) saturate(160%) !important;
+  background-color: rgba(15, 23, 42, 0.72) !important;
+  padding: 1.5rem !important;
+  overflow-y: auto !important;
 }
 
 .modal-card, .modal-dialog {
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  position: relative !important;
+  margin: auto !important;
+  width: 100% !important;
+  max-width: 520px !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  background: #ffffff !important;
+  border-radius: 14px !important;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.45) !important;
+  border: 1px solid #e2e8f0 !important;
+  animation: modalPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.modal-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 1.25rem 1.5rem !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  border-top-left-radius: 14px !important;
+  border-top-right-radius: 14px !important;
+}
+
+.btn-close-modal {
+  background: #f1f5f9 !important;
+  border: none !important;
+  border-radius: 6px !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  color: #475569 !important;
+  transition: all 0.15s ease !important;
+}
+
+.btn-close-modal:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+@keyframes modalPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 /* ---------------- APPLICATION MANAGEMENT ENHANCEMENTS ---------------- */

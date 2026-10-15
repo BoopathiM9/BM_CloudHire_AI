@@ -46,54 +46,86 @@ export default function LandingPage({ setActiveTab, onOpenAuth }) {
           and match elite cloud engineering talent with open requisitions.
         </p>
 
-        {/* Hero Action Buttons */}
-        <div className="hero-actions">
-          <button 
-            onClick={() => setActiveTab("find-jobs")} 
-            className="btn btn-primary btn-lg"
-          >
-            <Search size={18} />
-            <span>Explore Open Requisitions</span>
-            <ArrowRight size={18} />
-          </button>
+        {/* Dual Portal Gateway Section in Hero */}
+        {!currentUser ? (
+          <div className="hero-portal-cards-grid mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto text-left">
+            {/* 1. Candidate Gateway */}
+            <div className="card p-6 bg-white border border-slate-200 shadow-sm hover:shadow-md transition rounded-xl">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-lg bg-blue-50 text-primary flex items-center justify-center font-bold">
+                  <Users size={22} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-base">Candidate Portal</h3>
+                  <span className="text-xs text-muted">Apply for Jobs & Track Approval</span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-600 mb-4 leading-relaxed">
+                Register or log in using your email and password to browse verified cloud engineering roles, submit your resume, and track real-time application status.
+              </p>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => onOpenAuth("candidate-login")}
+                  className="btn btn-primary btn-sm flex-1"
+                >
+                  Candidate Sign In
+                </button>
+                <button 
+                  onClick={() => onOpenAuth("candidate-register")}
+                  className="btn btn-outline btn-sm flex-1"
+                >
+                  Create Account
+                </button>
+              </div>
+            </div>
 
-          {!currentUser ? (
+            {/* 2. Admin Gateway */}
+            <div className="card p-6 bg-slate-900 text-white border border-slate-800 shadow-sm hover:shadow-md transition rounded-xl">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-lg bg-slate-800 text-blue-400 flex items-center justify-center font-bold">
+                  <Lock size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-base">Admin Portal</h3>
+                  <span className="text-xs text-slate-400">Approvals & Job Management</span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-300 mb-3 leading-relaxed">
+                Sign in with administrative credentials to review pending candidate applications, grant 1-click approvals, and create new requisitions.
+              </p>
+              <div className="text-[11px] bg-slate-800/80 p-2 rounded text-slate-300 font-mono mb-3">
+                Username: <strong className="text-blue-300">admin</strong> | Password: <strong className="text-blue-300">boopathi_2004</strong>
+              </div>
+              <button 
+                onClick={() => onOpenAuth("recruiter-login")}
+                className="btn btn-light btn-sm w-full font-semibold flex items-center justify-center gap-1.5"
+                style={{ background: '#ffffff', color: '#0f172a' }}
+              >
+                <Lock size={13} />
+                <span>Sign In as Admin</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="hero-actions mt-4">
             <button 
-              onClick={() => onOpenAuth("candidate-register")} 
-              className="btn btn-outline btn-lg"
+              onClick={() => setActiveTab(currentUser.role === "RECRUITER" ? "applications" : "find-jobs")} 
+              className="btn btn-primary btn-lg"
             >
-              <Users size={18} />
-              <span>Candidate Registration</span>
+              <span>{currentUser.role === "RECRUITER" ? "Open Applications & Approvals" : "Browse Available Jobs"}</span>
+              <ArrowRight size={18} />
             </button>
-          ) : currentUser.role === "CANDIDATE" ? (
-            <button 
-              onClick={() => setActiveTab("my-applications")} 
-              className="btn btn-outline btn-lg"
-            >
-              <FileCheck2 size={18} />
-              <span>My Applications</span>
-            </button>
-          ) : (
-            <button 
-              onClick={() => setActiveTab("dashboard")} 
-              className="btn btn-outline btn-lg"
-            >
-              <Briefcase size={18} />
-              <span>Recruiter Dashboard</span>
-            </button>
-          )}
-
-          {!currentUser && (
-            <button 
-              onClick={() => onOpenAuth("recruiter-login")} 
-              className="btn btn-ghost btn-lg"
-              title="Talent acquisition panel login"
-            >
-              <Lock size={16} />
-              <span>Recruiter Portal</span>
-            </button>
-          )}
-        </div>
+            {currentUser.role === "CANDIDATE" && (
+              <button 
+                onClick={() => setActiveTab("my-applications")} 
+                className="btn btn-outline btn-lg"
+              >
+                <FileCheck2 size={18} />
+                <span>My Applications</span>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Live Metrics Pill Strip */}
         <div className="hero-metrics-strip">

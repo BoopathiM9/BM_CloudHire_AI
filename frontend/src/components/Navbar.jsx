@@ -51,7 +51,7 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
   // Navigation Items for Candidate / Public Portal
   const publicNavItems = [
     { id: "landing", label: "Home", icon: Home },
-    { id: "find-jobs", label: "Careers", icon: Search },
+    { id: "find-jobs", label: "Available Jobs", icon: Search },
     { id: "my-applications", label: "Track Application", icon: FileCheck2 }
   ];
 
@@ -70,41 +70,6 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
         <div className="nav-brand-group">
           <div className="nav-brand cursor-pointer" onClick={handleBrandClick}>
             <BrandLogo size="default" />
-          </div>
-
-          {/* Quick Dual-Portal Switcher Segmented Control */}
-          <div className="portal-segmented-control hidden-mobile">
-            <button 
-              onClick={() => {
-                if (isRecruiter) {
-                  switchDemoRole("CANDIDATE");
-                }
-                setActiveTab("find-jobs");
-              }}
-              className={`segmented-btn ${!isRecruiter ? "active candidate" : ""}`}
-              title="Browse Jobs & Apply as Candidate"
-            >
-              Careers
-            </button>
-            <button 
-              onClick={() => {
-                if (!isRecruiter) {
-                  if (!currentUser) {
-                    onOpenAuth("recruiter-login");
-                  } else {
-                    switchDemoRole("RECRUITER");
-                    setActiveTab("dashboard");
-                  }
-                } else {
-                  setActiveTab("dashboard");
-                }
-              }}
-              className={`segmented-btn ${isRecruiter ? "active recruiter" : ""}`}
-              title="Admin Portal - Approvals, Jobs & Candidate Matching"
-            >
-              <Lock size={12} className="mr-1 inline" />
-              Admin Portal
-            </button>
           </div>
         </div>
 

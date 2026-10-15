@@ -6,12 +6,13 @@ import {
   Briefcase, 
   CheckCircle2, 
   XCircle, 
-  Search,
-  User,
-  Mail,
-  ShieldCheck,
-  ArrowRight,
-  ExternalLink
+  Search, 
+  User, 
+  Mail, 
+  ShieldCheck, 
+  ArrowRight, 
+  ExternalLink,
+  Phone
 } from "lucide-react";
 
 export default function MyApplications({ setActiveTab, onOpenAuth }) {
@@ -35,7 +36,7 @@ export default function MyApplications({ setActiveTab, onOpenAuth }) {
               gap: '5px',
               padding: '4px 10px',
               borderRadius: '9999px',
-              fontWeight: 600
+              fontWeight: 700
             }}
           >
             <Clock size={13} /> Pending Review
@@ -48,17 +49,17 @@ export default function MyApplications({ setActiveTab, onOpenAuth }) {
             className="badge badge-success" 
             style={{ 
               background: '#dcfce7', 
-              color: '#166534', 
-              border: '1px solid #bbf7d0', 
+              color: '#15803d', 
+              border: '1px solid #86efac', 
               display: 'inline-flex', 
               alignItems: 'center', 
               gap: '5px',
               padding: '4px 10px',
               borderRadius: '9999px',
-              fontWeight: 600
+              fontWeight: 700
             }}
           >
-            <CheckCircle2 size={13} /> Approved
+            <CheckCircle2 size={13} /> Request Approved
           </span>
         );
       case "Under Review":
@@ -162,13 +163,13 @@ export default function MyApplications({ setActiveTab, onOpenAuth }) {
             <h3 className="text-base font-bold text-slate-800">Quick Status Lookup</h3>
           </div>
           <p className="text-xs text-slate-600 mb-4">
-            Enter your email address or Application Reference ID (e.g., <code>APP-101</code> or <code>arun.krishnan@example.com</code>) to see whether your application is <strong>Pending Review</strong>, <strong>Approved</strong>, or <strong>Not Selected</strong>.
+            Enter your email address or Application Reference ID (e.g., <code>APP-8203</code> or <code>arun.krishnan@example.com</code>) to see whether your application is <strong>Pending Review</strong>, <strong>Request Approved</strong>, or <strong>Not Selected</strong>.
           </p>
           <form onSubmit={handleLookupSubmit} className="flex gap-2 max-w-xl">
             <input 
               type="text"
               required
-              placeholder="e.g. arun.krishnan@example.com or APP-101"
+              placeholder="e.g. arun.krishnan@example.com or APP-8203"
               value={lookupQuery}
               onChange={(e) => { setLookupQuery(e.target.value); setHasSearched(false); }}
               className="form-input flex-1"
@@ -233,16 +234,77 @@ export default function MyApplications({ setActiveTab, onOpenAuth }) {
                   </div>
                 </div>
 
-                {/* Status Note & Timeline Info */}
-                <div className="app-status-box mt-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <Clock size={14} className="text-primary" />
-                    <span className="text-xs font-semibold text-slate-800">Status Update & Administrator Decision:</span>
+                {/* Status Box: Approved vs Pending vs General */}
+                {app.status === "Approved" || app.status === "Selected" ? (
+                  <div className="app-status-box approved-box mt-3 p-4 rounded-xl border border-emerald-300 bg-emerald-50/90 shadow-2xs">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-emerald-600 text-white flex-shrink-0">
+                        <CheckCircle2 size={20} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <span className="badge badge-success font-bold text-xs" style={{ background: '#dcfce7', color: '#15803d', border: '1px solid #86efac' }}>
+                            ✓ Request Approved
+                          </span>
+                          <span className="text-[11px] text-emerald-800 font-semibold">Hiring Decision: Approved by Lead</span>
+                        </div>
+                        <h4 className="font-bold text-emerald-950 text-sm mt-1">
+                          🎉 Congratulations! Your Application & Resume Have Been Approved
+                        </h4>
+                        <p className="text-xs text-emerald-900 mt-1 leading-relaxed">
+                          {app.statusNote || "Your technical qualifications and resume match our requirements. The hiring lead has approved your application."}
+                        </p>
+                        
+                        {/* Team Contact Details Box */}
+                        <div className="mt-3 p-3 bg-white/95 rounded-lg border border-emerald-200 text-xs text-slate-800 space-y-1.5 shadow-2xs">
+                          <div className="flex items-center gap-2 font-bold text-emerald-900">
+                            <Phone size={14} className="text-emerald-600" />
+                            <span>Next Step: Our Talent Acquisition team will contact you shortly!</span>
+                          </div>
+                          <p className="text-slate-600 text-xs pl-6 leading-relaxed">
+                            A recruiter will reach out via email (<strong>{app.candidateEmail}</strong>) or phone (<strong>{app.phone || "your provided phone number"}</strong>) within <strong>24 to 48 business hours</strong> to schedule your technical discussion and onboarding steps.
+                          </p>
+                          <div className="flex items-center gap-2 text-slate-500 pl-6 pt-1 text-[11px]">
+                            <Clock size={12} className="text-emerald-600" />
+                            <span>Technical Screening Queue: <strong>Active & Prioritized</strong></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <p className="app-status-note text-xs text-slate-700 leading-relaxed font-medium">
-                    {app.statusNote || (app.status === "Approved" ? "Congratulations! Application approved by hiring administrator." : app.status === "Pending Review" ? "Application received and queued for administrative review." : "In review.")}
-                  </p>
-                </div>
+                ) : app.status === "Pending Review" || app.status === "Submitted" ? (
+                  <div className="app-status-box pending-box mt-3 p-3.5 rounded-xl border border-amber-200 bg-amber-50/80">
+                    <div className="flex items-start gap-3">
+                      <div className="p-1.5 rounded-lg bg-amber-500 text-white flex-shrink-0 mt-0.5">
+                        <Clock size={16} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="badge badge-warning font-semibold text-xs" style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
+                            Status: Pending Review
+                          </span>
+                          <span className="text-[11px] text-amber-800 font-medium">Awaiting Administrator Decision</span>
+                        </div>
+                        <p className="text-xs text-amber-900 mt-1 leading-relaxed">
+                          {app.statusNote || "Your application and resume have been securely received. The hiring administrator is reviewing your technical competencies against open requisitions."}
+                        </p>
+                        <p className="text-[11px] text-amber-700 mt-1.5">
+                          ℹ️ Once the administrator reviews and approves your resume, this status will transition to <strong>Request Approved</strong> and our recruitment team will contact you directly.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="app-status-box mt-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Clock size={14} className="text-primary" />
+                      <span className="text-xs font-semibold text-slate-800">Status Update:</span>
+                    </div>
+                    <p className="app-status-note text-xs text-slate-700 leading-relaxed font-medium">
+                      {app.statusNote || app.status}
+                    </p>
+                  </div>
+                )}
 
                 {/* Details Meta */}
                 <div className="app-details-meta flex flex-wrap gap-4 text-xs text-slate-600 mt-3 pt-3 border-t border-slate-100">

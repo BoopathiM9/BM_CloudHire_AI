@@ -426,9 +426,19 @@ export default function CandidateApplyModal({ job, isOpen, onClose, onSuccess })
                 Status: <span className="badge badge-warning font-semibold" style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>Pending Review</span> — Awaiting administrator review and approval.
               </div>
 
+              <p className="text-xs text-slate-500 mt-2">
+                Once the administrator approves your resume, this status will transition to <strong>Request Approved</strong> and our recruitment team will reach out directly.
+              </p>
+
               <div className="modal-footer justify-center px-0 pb-0 mt-5">
-                <button onClick={onClose} className="btn btn-primary">
-                  <span>View in My Applications</span>
+                <button 
+                  onClick={() => {
+                    onClose();
+                    if (onSuccess) onSuccess();
+                  }} 
+                  className="btn btn-primary"
+                >
+                  <span>Track Application Status</span>
                 </button>
               </div>
             </div>

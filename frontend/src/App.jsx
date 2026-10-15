@@ -44,12 +44,14 @@ function AppContent() {
     setApplyModalOpen(true);
   };
 
-  const handleAuthSuccess = () => {
-    // If pending apply job, open apply modal
+  const handleAuthSuccess = (user) => {
+    // If user clicked apply on a job prior to login, reopen apply modal
     if (selectedJobForModal && !isRecruiter) {
       setApplyModalOpen(true);
-    } else if (authModalMode === "recruiter-login") {
-      setActiveTab("dashboard");
+    } else if (authModalMode === "recruiter-login" || user?.role === "RECRUITER") {
+      setActiveTab("applications");
+    } else {
+      setActiveTab("find-jobs");
     }
   };
 

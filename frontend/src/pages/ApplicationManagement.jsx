@@ -142,7 +142,7 @@ export default function ApplicationManagement({ setActiveTab }) {
   // 1-Click Approve Application
   const handleQuickApprove = (e, app) => {
     e.stopPropagation();
-    updateApplicationStatus(app.id, "Approved", "Application approved by Administrator.");
+    updateApplicationStatus(app.id, "Approved", "Application and resume approved by Administrator. Our team will contact you shortly to schedule your interview.");
     showNotification(`✓ Approved application for ${app.candidateName}!`);
   };
 
@@ -1187,7 +1187,7 @@ export default function ApplicationManagement({ setActiveTab }) {
               </button>
               <div className="flex gap-2">
                 <button 
-                  onClick={() => handleSaveStatus("Approved", "Application approved by Administrator.")}
+                  onClick={() => handleSaveStatus("Approved", "Application and resume approved by Administrator. Our team will contact you shortly to schedule your interview.")}
                   className="btn btn-success flex items-center gap-1.5 font-semibold"
                   style={{ background: '#16a34a', color: 'white', border: 'none' }}
                 >
