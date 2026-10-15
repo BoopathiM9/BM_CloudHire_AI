@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AppProvider, useApp } from "./context/AppContext";
 import Navbar from "./components/Navbar";
 import LandingPage from "./pages/LandingPage";
@@ -10,6 +10,7 @@ import ApplicationManagement from "./pages/ApplicationManagement";
 import ResumeUpload from "./pages/ResumeUpload";
 import CandidateMatching from "./pages/CandidateMatching";
 import AssignmentHistory from "./pages/AssignmentHistory";
+import AuthLandingPage from "./pages/AuthLandingPage";
 import CandidateAuthModal from "./components/CandidateAuthModal";
 import JobDetailsModal from "./components/JobDetailsModal";
 import CandidateApplyModal from "./components/CandidateApplyModal";
@@ -17,7 +18,21 @@ import { Lock, ShieldAlert, ArrowLeft } from "lucide-react";
 
 function AppContent() {
   const { currentUser } = useApp();
-  const [activeTab, setActiveTab] = useState("landing");
+  const isRecruiter = currentUser?.role === "RECRUITER";
+
+  // Tab State: Candidate defaults to 'find-jobs', Admin defaults to 'applications'
+  const [activeTab, setActiveTab] = useState(() => {
+    return currentUser?.role === "RECRUITER" ? "applications" : "find-jobs";
+  });
+
+  // Keep active tab in sync when user signs in or role switches
+  useEffect(() => {
+    if (currentUser?.role === "RECRUITER") {
+      setActiveTab("applications");
+    } else if (currentUser?.role === "CANDIDATE") {
+      setActiveTab("find-jobs");
+    }
+  }, [currentUser?.role]);
 
   // Modals state
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -26,7 +41,6 @@ function AppContent() {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
 
-  const isRecruiter = currentUser?.role === "RECRUITER";
   const recruiterTabs = ["dashboard", "jobs", "applications", "resumes", "matching", "history"];
 
   const handleOpenAuth = (mode = "candidate-login") => {
@@ -45,16 +59,30 @@ function AppContent() {
   };
 
   const handleAuthSuccess = (user) => {
-    // If user clicked apply on a job prior to login, reopen apply modal
-    if (selectedJobForModal && !isRecruiter) {
-      setApplyModalOpen(true);
-    } else if (authModalMode === "recruiter-login" || user?.role === "RECRUITER") {
+    if (user?.role === "RECRUITER" || authModalMode === "recruiter-login") {
       setActiveTab("applications");
     } else {
       setActiveTab("find-jobs");
+      if (selectedJobForModal) {
+        setApplyModalOpen(true);
+      }
     }
   };
 
+  // =========================================================================
+  // FIRST PAGE GATEWAY: If not authenticated, ONLY render AuthLandingPage
+  // =========================================================================
+  if (!currentUser) {
+    return (
+      <AuthLandingPage 
+        onLoginSuccess={handleAuthSuccess} 
+      />
+    );
+  }
+
+  // =========================================================================
+  // AUTHENTICATED PORTAL: Only displayed AFTER user logs in
+  // =========================================================================
   return (
     <div className="min-h-screen">
       <Navbar 
@@ -64,14 +92,7 @@ function AppContent() {
       />
 
       <main>
-        {/* PUBLIC & CANDIDATE PORTAL */}
-        {activeTab === "landing" && (
-          <LandingPage 
-            setActiveTab={setActiveTab} 
-            onOpenAuth={handleOpenAuth} 
-          />
-        )}
-
+        {/* CANDIDATE PORTAL VIEWS */}
         {activeTab === "find-jobs" && (
           <FindJobs 
             onViewJobDetails={handleViewJobDetails}
@@ -86,7 +107,14 @@ function AppContent() {
           />
         )}
 
-        {/* PROTECTED RECRUITER PORTAL (RBAC Guard) */}
+        {activeTab === "landing" && (
+          <LandingPage 
+            setActiveTab={setActiveTab} 
+            onOpenAuth={handleOpenAuth} 
+          />
+        )}
+
+        {/* PROTECTED RECRUITER PORTAL VIEWS (RBAC Guard) */}
         {recruiterTabs.includes(activeTab) && (
           !isRecruiter ? (
             <div className="page-container">
@@ -95,8 +123,8 @@ function AppContent() {
                 <h2>Recruiter Authorization Required</h2>
                 <p>
                   You are attempting to access a protected talent acquisition workspace. 
-                  Please sign in with authorized recruiter credentials to view candidates, run AI matching, 
-                  and manage requisitions.
+                  Please sign in with authorized recruiter credentials (admin / boopathi_2004) 
+                  to view candidate resumes, run AI matching, and approve requisitions.
                 </p>
                 <div className="flex gap-3 mt-4">
                   <button 
@@ -107,22 +135,22 @@ function AppContent() {
                     <span>Recruiter Sign In</span>
                   </button>
                   <button 
-                    onClick={() => setActiveTab("landing")} 
+                    onClick={() => setActiveTab("find-jobs")} 
                     className="btn btn-outline"
                   >
                     <ArrowLeft size={15} />
-                    <span>Return to Public Site</span>
+                    <span>Return to Available Jobs</span>
                   </button>
                 </div>
               </div>
             </div>
           ) : (
             <>
-              {activeTab === "dashboard" && <Dashboard setActiveTab={setActiveTab} />}
-              {activeTab === "jobs" && <JobManagement setActiveTab={setActiveTab} />}
               {activeTab === "applications" && <ApplicationManagement setActiveTab={setActiveTab} />}
-              {activeTab === "resumes" && <ResumeUpload />}
+              {activeTab === "jobs" && <JobManagement setActiveTab={setActiveTab} />}
+              {activeTab === "dashboard" && <Dashboard setActiveTab={setActiveTab} />}
               {activeTab === "matching" && <CandidateMatching setActiveTab={setActiveTab} />}
+              {activeTab === "resumes" && <ResumeUpload />}
               {activeTab === "history" && <AssignmentHistory setActiveTab={setActiveTab} />}
             </>
           )

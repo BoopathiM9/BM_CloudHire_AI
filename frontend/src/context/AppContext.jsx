@@ -49,7 +49,7 @@ export function AppProvider({ children }) {
 
   const [currentUser, setCurrentUser] = useState(() => {
     try {
-      const saved = localStorage.getItem("bm_cloudhire_current_user");
+      const saved = sessionStorage.getItem("bm_cloudhire_current_user");
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -101,8 +101,9 @@ export function AppProvider({ children }) {
   useEffect(() => {
     try {
       if (currentUser) {
-        localStorage.setItem("bm_cloudhire_current_user", JSON.stringify(currentUser));
+        sessionStorage.setItem("bm_cloudhire_current_user", JSON.stringify(currentUser));
       } else {
+        sessionStorage.removeItem("bm_cloudhire_current_user");
         localStorage.removeItem("bm_cloudhire_current_user");
       }
     } catch (e) { console.warn(e); }

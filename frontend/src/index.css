@@ -3872,3 +3872,61 @@ body {
   border-radius: 8px;
   padding: 0.75rem;
 }
+
+/* ---------------- FIRST PAGE AUTH GATEWAY STYLES ---------------- */
+.auth-gateway-page {
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f6 100%);
+  min-height: 100vh;
+}
+
+.auth-gateway-topbar {
+  background-color: #0b1329;
+  border-bottom: 1px solid #1e293b;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.auth-gateway-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 2rem 2.25rem;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+}
+
+@media (max-width: 640px) {
+  .auth-gateway-card {
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+.auth-quick-fill-box {
+  background: #f0f7ff;
+  border: 1px solid #bfdbfe;
+}
+
+.portal-tab-btn {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  outline: none;
+}
+
+.portal-content-pane {
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake 0.35s ease-in-out;
+}
+
