@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { AppProvider, useApp } from "./context/AppContext";
-import Navbar from "./components/Navbar";
+import Sidebar from "./components/Sidebar";
+import TopHeader from "./components/TopHeader";
+import SettingsModal from "./components/SettingsModal";
 import LandingPage from "./pages/LandingPage";
 import FindJobs from "./pages/FindJobs";
 import MyApplications from "./pages/MyApplications";
@@ -23,6 +25,16 @@ function AppContent() {
     return currentUser?.role === "RECRUITER" ? "applications" : "find-jobs";
   });
 
+  // Responsive sidebar collapse state
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Modals state
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [selectedJobForModal, setSelectedJobForModal] = useState(null);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
+
   // Keep active tab in sync when user signs in or role switches
   useEffect(() => {
     if (currentUser?.role === "RECRUITER") {
@@ -31,11 +43,6 @@ function AppContent() {
       setActiveTab("find-jobs");
     }
   }, [currentUser?.role]);
-
-  // Modals state
-  const [selectedJobForModal, setSelectedJobForModal] = useState(null);
-  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
-  const [applyModalOpen, setApplyModalOpen] = useState(false);
 
   const recruiterTabs = ["dashboard", "jobs", "applications", "resumes", "matching", "history"];
 
@@ -69,50 +76,73 @@ function AppContent() {
   }
 
   // =========================================================================
-  // AUTHENTICATED PORTAL: Only displayed AFTER user logs in
+  // AUTHENTICATED PORTAL: Vertical Sidebar Layout + Top Header
   // =========================================================================
   return (
-    <div className="min-h-screen">
-      <Navbar 
+    <div className="portal-app-layout">
+      {/* 1. Forest Green Collapsible Vertical Sidebar */}
+      <Sidebar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
+        collapsed={sidebarCollapsed}
+        setCollapsed={setSidebarCollapsed}
+        mobileOpen={mobileSidebarOpen}
+        setMobileOpen={setMobileSidebarOpen}
+        onOpenSettings={() => setSettingsOpen(true)}
       />
 
-      <main>
-        {/* CANDIDATE PORTAL VIEWS */}
-        {activeTab === "find-jobs" && (
-          <FindJobs 
-            onViewJobDetails={handleViewJobDetails}
-            onApplyJob={handleApplyJob}
-          />
-        )}
+      {/* 2. Main Content Wrapper */}
+      <div className={`portal-main-container ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
+        {/* Compact Top Header */}
+        <TopHeader 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+          onOpenSettings={() => setSettingsOpen(true)}
+        />
 
-        {activeTab === "my-applications" && (
-          <MyApplications 
-            setActiveTab={setActiveTab}
-          />
-        )}
+        {/* Main Content View Body */}
+        <main className="portal-content-body">
+          {/* CANDIDATE PORTAL VIEWS */}
+          {activeTab === "find-jobs" && (
+            <FindJobs 
+              onViewJobDetails={handleViewJobDetails}
+              onApplyJob={handleApplyJob}
+            />
+          )}
 
-        {activeTab === "landing" && (
-          <LandingPage 
-            setActiveTab={setActiveTab} 
-          />
-        )}
+          {activeTab === "my-applications" && (
+            <MyApplications 
+              setActiveTab={setActiveTab}
+            />
+          )}
 
-        {/* RECRUITER PORTAL VIEWS */}
-        {recruiterTabs.includes(activeTab) && isRecruiter && (
-          <>
-            {activeTab === "applications" && <ApplicationManagement setActiveTab={setActiveTab} />}
-            {activeTab === "jobs" && <JobManagement setActiveTab={setActiveTab} />}
-            {activeTab === "dashboard" && <Dashboard setActiveTab={setActiveTab} />}
-            {activeTab === "matching" && <CandidateMatching setActiveTab={setActiveTab} />}
-            {activeTab === "resumes" && <ResumeUpload />}
-            {activeTab === "history" && <AssignmentHistory setActiveTab={setActiveTab} />}
-          </>
-        )}
-      </main>
+          {activeTab === "landing" && (
+            <LandingPage 
+              setActiveTab={setActiveTab} 
+            />
+          )}
+
+          {/* RECRUITER PORTAL VIEWS */}
+          {recruiterTabs.includes(activeTab) && isRecruiter && (
+            <>
+              {activeTab === "applications" && <ApplicationManagement setActiveTab={setActiveTab} />}
+              {activeTab === "jobs" && <JobManagement setActiveTab={setActiveTab} />}
+              {activeTab === "dashboard" && <Dashboard setActiveTab={setActiveTab} />}
+              {activeTab === "matching" && <CandidateMatching setActiveTab={setActiveTab} />}
+              {activeTab === "resumes" && <ResumeUpload />}
+              {activeTab === "history" && <AssignmentHistory setActiveTab={setActiveTab} />}
+            </>
+          )}
+        </main>
+      </div>
 
       {/* Global Modals */}
+      <SettingsModal 
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
+
       <JobDetailsModal 
         job={selectedJobForModal}
         isOpen={detailsModalOpen}
