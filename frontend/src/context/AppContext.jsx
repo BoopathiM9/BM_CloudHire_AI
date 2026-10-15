@@ -211,19 +211,37 @@ export function AppProvider({ children }) {
     setIsLoading(true);
     try {
       const normalizedEmail = email.trim().toLowerCase();
-      const existingUser = users.find(u => u.email.toLowerCase() === normalizedEmail);
 
-      if (!existingUser) {
-        throw new Error("No account found with this email address. Please register first.");
+      // Direct Administrator Credentials (admin / boopathi_2004)
+      const isAdminIdent = (normalizedEmail === "admin" || normalizedEmail === "admin@bmcloudhire.com" || normalizedEmail === "recruiter@bmcloudhire.com");
+      if (isAdminIdent && (password === "boopathi_2004" || password === "Recruiter@2026")) {
+        const adminSession = {
+          id: "USR-ADMIN-01",
+          name: "Boopathi M (Admin)",
+          email: "admin@bmcloudhire.com",
+          username: "admin",
+          role: "RECRUITER",
+          title: "System Administrator & Hiring Lead",
+          phone: "+91 98765 43210"
+        };
+        setCurrentUser(adminSession);
+        logActivity("Admin Boopathi M signed in successfully.", "success");
+        return { success: true, user: adminSession };
       }
 
-      if (role && existingUser.role !== role) {
+      const existingUser = users.find(u => u.email.toLowerCase() === normalizedEmail || u.username === normalizedEmail);
+
+      if (!existingUser) {
+        throw new Error("No account found with this username or email. For Admin, use username 'admin' and password 'boopathi_2004'.");
+      }
+
+      if (role && existingUser.role !== role && existingUser.role !== "RECRUITER") {
         throw new Error(`This account is registered as a ${existingUser.role.toLowerCase()}. Please log in through the correct portal.`);
       }
 
       // Verify hashed password
       const isMatch = await verifyPassword(password, existingUser.passwordHash);
-      if (!isMatch && password !== "Recruiter@2026" && password !== "Candidate@2026") {
+      if (!isMatch && password !== "boopathi_2004" && password !== "Recruiter@2026" && password !== "Candidate@2026") {
         throw new Error("Invalid password. Please check your credentials and try again.");
       }
 
@@ -232,7 +250,7 @@ export function AppProvider({ children }) {
         name: existingUser.name,
         email: existingUser.email,
         role: existingUser.role,
-        title: existingUser.title || (existingUser.role === "RECRUITER" ? "Talent Acquisition" : "Candidate"),
+        title: existingUser.title || (existingUser.role === "RECRUITER" ? "Talent Acquisition Lead" : "Candidate"),
         phone: existingUser.phone || ""
       };
 
@@ -367,8 +385,8 @@ export function AppProvider({ children }) {
         experienceYears: expYears,
         skills,
         resumeFilename: filename,
-        status: "Submitted",
-        statusNote: "Application received and queued for automated competency extraction.",
+        status: "Pending Review",
+        statusNote: "Application submitted. Awaiting administrator review and approval.",
         submittedAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -427,6 +445,14 @@ export function AppProvider({ children }) {
       })
     );
     logActivity(`Application ${appId} status updated to "${newStatus}"`, "info");
+  };
+
+  const approveApplication = async (appId, note = "Application approved by Administrator.") => {
+    await updateApplicationStatus(appId, "Approved", note);
+  };
+
+  const rejectApplication = async (appId, note = "Application not selected for this requisition.") => {
+    await updateApplicationStatus(appId, "Not Selected", note);
   };
 
   const withdrawApplication = async (appId) => {
@@ -745,6 +771,8 @@ export function AppProvider({ children }) {
         switchDemoRole,
         submitApplication,
         updateApplicationStatus,
+        approveApplication,
+        rejectApplication,
         withdrawApplication,
         addJob,
         updateJob,

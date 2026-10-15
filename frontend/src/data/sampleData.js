@@ -90,8 +90,8 @@ export const initialApplications = [
     experienceYears: 6,
     skills: ["Python", "AWS Lambda", "DynamoDB", "React", "API Gateway", "Docker", "AWS CDK"],
     resumeFilename: "arun_krishnan_resume.pdf",
-    status: "Shortlisted",
-    statusNote: "Technical profile cleared rubric with 89 pts. Progressed to technical interview.",
+    status: "Approved",
+    statusNote: "Approved by Admin Boopathi. Candidate advanced to Technical Interview round.",
     submittedAt: "2026-10-11T12:30:00Z",
     updatedAt: "2026-10-12T09:15:00Z"
   },
@@ -107,7 +107,7 @@ export const initialApplications = [
     skills: ["AWS", "Docker", "Kubernetes", "CI/CD", "Terraform", "Python", "Linux"],
     resumeFilename: "priya_sharma_cloud.docx",
     status: "Under Review",
-    statusNote: "Resume parsed successfully. Awaiting hiring manager review.",
+    statusNote: "Resume parsed successfully. Technical rubric evaluated.",
     submittedAt: "2026-10-12T14:45:00Z",
     updatedAt: "2026-10-12T14:45:00Z"
   },
@@ -122,22 +122,55 @@ export const initialApplications = [
     experienceYears: 4,
     skills: ["Python", "Amazon Bedrock", "Vector Databases", "LangChain", "FastAPI", "PyTorch"],
     resumeFilename: "neha_patel_genai.pdf",
-    status: "Submitted",
-    statusNote: "Application received and queued for automated competency extraction.",
+    status: "Pending Review",
+    statusNote: "Application submitted. Awaiting administrator review and approval.",
     submittedAt: "2026-10-13T10:20:00Z",
     updatedAt: "2026-10-13T10:20:00Z"
+  },
+  {
+    id: "APP-8204",
+    jobId: "JOB-101",
+    jobTitle: "Senior Full-Stack AWS Developer",
+    candidateId: "CAN-005",
+    candidateName: "Vignesh S",
+    candidateEmail: "vignesh.s@example.com",
+    phone: "+91 98401 23456",
+    experienceYears: 4,
+    skills: ["Python", "React", "AWS Lambda", "API Gateway", "PostgreSQL"],
+    resumeFilename: "vignesh_resume.pdf",
+    status: "Pending Review",
+    statusNote: "Application submitted. Awaiting administrator review and approval.",
+    submittedAt: "2026-10-14T08:15:00Z",
+    updatedAt: "2026-10-14T08:15:00Z"
   }
 ];
 
 export const initialUsers = [
+  {
+    id: "USR-ADMIN-01",
+    name: "Boopathi M (Admin)",
+    email: "admin",
+    username: "admin",
+    role: "RECRUITER",
+    title: "System Administrator & Hiring Lead",
+    passwordHash: "4b4cdf8dec9461e629d9dabb45ec2ed9c11b9a5f18cb57f35ea62b93dfc45e0b"
+  },
+  {
+    id: "USR-ADMIN-02",
+    name: "Boopathi M (Admin)",
+    email: "admin@bmcloudhire.com",
+    username: "admin",
+    role: "RECRUITER",
+    title: "System Administrator & Hiring Lead",
+    passwordHash: "4b4cdf8dec9461e629d9dabb45ec2ed9c11b9a5f18cb57f35ea62b93dfc45e0b"
+  },
   {
     id: "USR-REC-01",
     name: "Boopathi M",
     email: "recruiter@bmcloudhire.com",
     role: "RECRUITER",
     title: "Principal Talent Acquisition Lead",
-    // SHA-256 for 'Recruiter@2026'
-    passwordHash: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+    passwordHash: "4b4cdf8dec9461e629d9dabb45ec2ed9c11b9a5f18cb57f35ea62b93dfc45e0b"
   },
   {
     id: "USR-CAN-01",

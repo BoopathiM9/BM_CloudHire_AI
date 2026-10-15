@@ -423,7 +423,7 @@ export default function CandidateApplyModal({ job, isOpen, onClose, onSuccess })
               </div>
 
               <div className="text-xs text-secondary mt-3">
-                Status: <span className="badge badge-primary">Submitted</span> — In queue for automated competency extraction.
+                Status: <span className="badge badge-warning font-semibold" style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>Pending Review</span> — Awaiting administrator review and approval.
               </div>
 
               <div className="modal-footer justify-center px-0 pb-0 mt-5">

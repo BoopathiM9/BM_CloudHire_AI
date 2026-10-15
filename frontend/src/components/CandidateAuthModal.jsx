@@ -142,7 +142,8 @@ export default function CandidateAuthModal({ isOpen, onClose, initialMode = "can
             className={`auth-tab-btn ${mode === "recruiter-login" ? "active" : ""}`}
             onClick={() => { setMode("recruiter-login"); setError(""); }}
           >
-            Recruiter Portal
+            <Lock size={13} className="mr-1 inline" />
+            Admin Portal
           </button>
         </div>
 
@@ -155,26 +156,36 @@ export default function CandidateAuthModal({ isOpen, onClose, initialMode = "can
             </div>
           )}
 
-          {/* Quick Demo Pre-Filled Buttons for Reviewers */}
+          {/* Quick Demo Pre-Filled Buttons */}
           <div className="demo-credentials-box">
             <div className="demo-credentials-title">
               <Sparkles size={14} className="text-primary" />
-              <span>Reviewer Quick Demo Access</span>
+              <span>Quick Login Credentials</span>
             </div>
             <div className="demo-buttons-row">
               <button 
                 type="button"
-                className="btn btn-xs btn-outline"
-                onClick={() => handleQuickDemoLogin("CANDIDATE")}
+                className="btn btn-xs btn-primary font-semibold"
+                onClick={() => {
+                  setMode("recruiter-login");
+                  setEmail("admin");
+                  setPassword("boopathi_2004");
+                }}
+                title="Fill Admin credentials: admin / boopathi_2004"
               >
-                Sign In as Demo Candidate (Arun)
+                Fill Admin (admin / boopathi_2004)
               </button>
               <button 
                 type="button"
                 className="btn btn-xs btn-outline"
-                onClick={() => handleQuickDemoLogin("RECRUITER")}
+                onClick={() => {
+                  setMode("candidate-login");
+                  setEmail("arun.krishnan@example.com");
+                  setPassword("Candidate@2026");
+                }}
+                title="Fill candidate credentials"
               >
-                Sign In as Demo Recruiter (Boopathi)
+                Fill Candidate (Arun)
               </button>
             </div>
           </div>
@@ -271,15 +282,23 @@ export default function CandidateAuthModal({ isOpen, onClose, initialMode = "can
           ) : (
             <form onSubmit={handleLogin} className="auth-form">
               <div className="form-group">
-                <label>{mode === "recruiter-login" ? "Recruiter Enterprise Email" : "Candidate Email Address"}</label>
+                <label>
+                  {mode === "recruiter-login" ? "Admin Username or Email" : "Candidate Email Address"}
+                </label>
                 <div className="input-with-icon">
-                  <Mail size={16} className="input-icon" />
+                  {mode === "recruiter-login" ? (
+                    <User size={16} className="input-icon" />
+                  ) : (
+                    <Mail size={16} className="input-icon" />
+                  )}
                   <input 
-                    type="email" 
+                    type={mode === "recruiter-login" ? "text" : "email"} 
                     required 
-                    placeholder={mode === "recruiter-login" ? "recruiter@bmcloudhire.com" : "arun.krishnan@example.com"}
+                    placeholder={mode === "recruiter-login" ? "admin (or admin@bmcloudhire.com)" : "arun.krishnan@example.com"}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoCapitalize="none"
+                    autoCorrect="off"
                   />
                 </div>
               </div>
@@ -291,7 +310,7 @@ export default function CandidateAuthModal({ isOpen, onClose, initialMode = "can
                   <input 
                     type="password" 
                     required 
-                    placeholder="Enter your account password"
+                    placeholder={mode === "recruiter-login" ? "boopathi_2004" : "Enter your account password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -303,7 +322,7 @@ export default function CandidateAuthModal({ isOpen, onClose, initialMode = "can
                 className="btn btn-primary btn-block"
                 disabled={loading}
               >
-                {loading ? "Authenticating..." : mode === "recruiter-login" ? "Access Recruiter Portal" : "Sign In to Candidate Portal"}
+                {loading ? "Authenticating..." : mode === "recruiter-login" ? "Sign In to Admin Portal" : "Sign In to Candidate Portal"}
               </button>
 
               <div className="auth-footer-help">
@@ -319,9 +338,10 @@ export default function CandidateAuthModal({ isOpen, onClose, initialMode = "can
                     </button>
                   </p>
                 ) : mode === "recruiter-login" ? (
-                  <p className="text-muted text-xs">
-                    Protected enterprise access. Enforces AWS IAM least-privilege security.
-                  </p>
+                  <div className="p-2.5 rounded bg-slate-50 border border-slate-200 text-xs text-slate-700 text-center">
+                    <span className="font-semibold text-slate-800">Admin Credentials:</span><br />
+                    Username: <code className="font-mono font-bold text-primary">admin</code> | Password: <code className="font-mono font-bold text-primary">boopathi_2004</code>
+                  </div>
                 ) : (
                   <p>
                     Already registered?{" "}

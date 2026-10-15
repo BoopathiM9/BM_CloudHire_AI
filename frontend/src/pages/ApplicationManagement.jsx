@@ -63,18 +63,15 @@ export default function ApplicationManagement({ setActiveTab }) {
   // Metrics counts
   const metrics = useMemo(() => {
     const total = applications.length;
-    const submitted = applications.filter(a => a.status === "Submitted").length;
-    const underReview = applications.filter(a => a.status === "Under Review").length;
-    const shortlisted = applications.filter(a => a.status === "Shortlisted").length;
+    const pendingReview = applications.filter(a => a.status === "Pending Review" || a.status === "Submitted" || a.status === "Under Review").length;
+    const approved = applications.filter(a => a.status === "Approved" || a.status === "Selected" || a.status === "Shortlisted").length;
+    const notSelected = applications.filter(a => a.status === "Not Selected" || a.status === "Rejected").length;
     const interview = applications.filter(a => a.status === "Interview").length;
-    const selected = applications.filter(a => a.status === "Selected").length;
-    const notSelected = applications.filter(a => a.status === "Not Selected").length;
     return {
       total,
-      needsReview: submitted + underReview,
-      shortlisted,
+      pendingReview,
+      approved,
       interview,
-      selected,
       notSelected
     };
   }, [applications]);
@@ -104,8 +101,12 @@ export default function ApplicationManagement({ setActiveTab }) {
 
       // 2. Status Filter
       let matchStatus = true;
-      if (selectedStatusFilter === "NEEDS_REVIEW") {
-        matchStatus = app.status === "Submitted" || app.status === "Under Review";
+      if (selectedStatusFilter === "PENDING_REVIEW") {
+        matchStatus = app.status === "Pending Review" || app.status === "Submitted" || app.status === "Under Review";
+      } else if (selectedStatusFilter === "Approved") {
+        matchStatus = app.status === "Approved" || app.status === "Selected" || app.status === "Shortlisted";
+      } else if (selectedStatusFilter === "Not Selected") {
+        matchStatus = app.status === "Not Selected" || app.status === "Rejected";
       } else if (selectedStatusFilter !== "ALL") {
         matchStatus = app.status === selectedStatusFilter;
       }
@@ -125,7 +126,7 @@ export default function ApplicationManagement({ setActiveTab }) {
   const handleOpenReview = (app, defaultTab = "overview") => {
     setActiveModalApp(app);
     setActiveTabModal(defaultTab);
-    setEditingStatus(app.status || "Submitted");
+    setEditingStatus(app.status || "Pending Review");
     setEditingNote(app.statusNote || "");
   };
 
@@ -138,25 +139,18 @@ export default function ApplicationManagement({ setActiveTab }) {
     setActiveModalApp(null);
   };
 
-  // Quick 1-Click Accept
-  const handleQuickAccept = (e, app) => {
+  // 1-Click Approve Application
+  const handleQuickApprove = (e, app) => {
     e.stopPropagation();
-    updateApplicationStatus(app.id, "Shortlisted", "Candidate shortlisted through quick review.");
-    showNotification(`Accepted & Shortlisted ${app.candidateName}`);
+    updateApplicationStatus(app.id, "Approved", "Application approved by Administrator.");
+    showNotification(`✓ Approved application for ${app.candidateName}!`);
   };
 
-  // Quick 1-Click Select / Offer
-  const handleQuickSelect = (e, app) => {
-    e.stopPropagation();
-    updateApplicationStatus(app.id, "Selected", "Hiring offer extended to candidate.");
-    showNotification(`Selected candidate ${app.candidateName} for offer stage!`);
-  };
-
-  // Quick 1-Click Reject
+  // 1-Click Reject Application
   const handleQuickReject = (e, app) => {
     e.stopPropagation();
-    updateApplicationStatus(app.id, "Not Selected", "Profile does not match current requisition requirements.");
-    showNotification(`Marked ${app.candidateName} as Not Selected.`);
+    updateApplicationStatus(app.id, "Not Selected", "Application not selected for this requisition.");
+    showNotification(`Marked application for ${app.candidateName} as Not Selected.`);
   };
 
   // Assign Candidate Exclusively
@@ -168,7 +162,7 @@ export default function ApplicationManagement({ setActiveTab }) {
       return;
     }
     confirmAssignment(app.jobId, [candId]);
-    updateApplicationStatus(app.id, "Selected", "Candidate assigned exclusively to requisition.");
+    updateApplicationStatus(app.id, "Approved", "Candidate assigned exclusively to requisition.");
     showNotification(`Locked & Assigned ${app.candidateName} exclusively!`);
     setActiveModalApp(null);
   };
@@ -180,18 +174,80 @@ export default function ApplicationManagement({ setActiveTab }) {
 
   const getStatusBadge = (status) => {
     switch (status) {
+      case "Pending Review":
       case "Submitted":
-        return <span className="badge badge-subtle">Submitted</span>;
+        return (
+          <span 
+            className="badge badge-warning" 
+            style={{ 
+              background: '#fef3c7', 
+              color: '#92400e', 
+              border: '1px solid #fde68a', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '4px',
+              fontWeight: 600
+            }}
+          >
+            <Clock size={12} /> Pending Review
+          </span>
+        );
+      case "Approved":
+      case "Selected":
+        return (
+          <span 
+            className="badge badge-success" 
+            style={{ 
+              background: '#dcfce7', 
+              color: '#166534', 
+              border: '1px solid #bbf7d0', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '4px',
+              fontWeight: 600
+            }}
+          >
+            <CheckCircle2 size={12} /> Approved
+          </span>
+        );
       case "Under Review":
         return <span className="badge badge-primary">Under Review</span>;
       case "Shortlisted":
-        return <span className="badge badge-success">Shortlisted</span>;
+        return (
+          <span 
+            className="badge badge-success" 
+            style={{ 
+              background: '#dcfce7', 
+              color: '#166534', 
+              border: '1px solid #bbf7d0', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '4px' 
+            }}
+          >
+            <CheckCircle2 size={12} /> Approved / Shortlist
+          </span>
+        );
       case "Interview":
-        return <span className="badge badge-purple">Interview</span>;
-      case "Selected":
-        return <span className="badge badge-emerald">Selected</span>;
+        return <span className="badge badge-purple">Interview Stage</span>;
       case "Not Selected":
-        return <span className="badge badge-danger">Not Selected</span>;
+      case "Rejected":
+        return (
+          <span 
+            className="badge badge-danger" 
+            style={{ 
+              background: '#fee2e2', 
+              color: '#991b1b', 
+              border: '1px solid #fecaca', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '4px',
+              fontWeight: 600
+            }}
+          >
+            <X size={12} /> Not Selected
+          </span>
+        );
       case "Withdrawn":
         return <span className="badge badge-muted">Withdrawn</span>;
       default:
@@ -262,7 +318,7 @@ export default function ApplicationManagement({ setActiveTab }) {
       </div>
 
       {/* Metrics Quick Filter Bar */}
-      <div className="metrics-quick-bar mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+      <div className="metrics-quick-bar mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div 
           onClick={() => setSelectedStatusFilter("ALL")}
           className={`card p-3 cursor-pointer transition ${selectedStatusFilter === "ALL" ? "border-primary bg-primary-subtle" : "hover:border-slate-300"}`}
@@ -272,42 +328,37 @@ export default function ApplicationManagement({ setActiveTab }) {
         </div>
 
         <div 
-          onClick={() => setSelectedStatusFilter("NEEDS_REVIEW")}
-          className={`card p-3 cursor-pointer transition ${selectedStatusFilter === "NEEDS_REVIEW" ? "border-blue-500 bg-blue-50" : "hover:border-slate-300"}`}
+          onClick={() => setSelectedStatusFilter("PENDING_REVIEW")}
+          className={`card p-3 cursor-pointer transition ${selectedStatusFilter === "PENDING_REVIEW" ? "border-amber-500 bg-amber-50" : "hover:border-slate-300"}`}
+          style={selectedStatusFilter === "PENDING_REVIEW" ? { borderColor: '#f59e0b', background: '#fef3c7' } : {}}
         >
-          <div className="text-xs text-blue-700 font-medium">Needs Review</div>
-          <div className="text-xl font-bold text-blue-700">{metrics.needsReview}</div>
+          <div className="flex items-center gap-1.5 text-xs text-amber-800 font-semibold">
+            <Clock size={13} />
+            <span>Pending Review</span>
+          </div>
+          <div className="text-xl font-bold text-amber-900">{metrics.pendingReview}</div>
         </div>
 
         <div 
-          onClick={() => setSelectedStatusFilter("Shortlisted")}
-          className={`card p-3 cursor-pointer transition ${selectedStatusFilter === "Shortlisted" ? "border-emerald-500 bg-emerald-50" : "hover:border-slate-300"}`}
+          onClick={() => setSelectedStatusFilter("Approved")}
+          className={`card p-3 cursor-pointer transition ${selectedStatusFilter === "Approved" ? "border-emerald-500 bg-emerald-50" : "hover:border-slate-300"}`}
+          style={selectedStatusFilter === "Approved" ? { borderColor: '#10b981', background: '#ecfdf5' } : {}}
         >
-          <div className="text-xs text-emerald-700 font-medium">Shortlisted</div>
-          <div className="text-xl font-bold text-emerald-700">{metrics.shortlisted}</div>
-        </div>
-
-        <div 
-          onClick={() => setSelectedStatusFilter("Interview")}
-          className={`card p-3 cursor-pointer transition ${selectedStatusFilter === "Interview" ? "border-purple-500 bg-purple-50" : "hover:border-slate-300"}`}
-        >
-          <div className="text-xs text-purple-700 font-medium">In Interview</div>
-          <div className="text-xl font-bold text-purple-700">{metrics.interview}</div>
-        </div>
-
-        <div 
-          onClick={() => setSelectedStatusFilter("Selected")}
-          className={`card p-3 cursor-pointer transition ${selectedStatusFilter === "Selected" ? "border-emerald-600 bg-emerald-50" : "hover:border-slate-300"}`}
-        >
-          <div className="text-xs text-emerald-800 font-medium">Selected / Offers</div>
-          <div className="text-xl font-bold text-emerald-800">{metrics.selected}</div>
+          <div className="flex items-center gap-1.5 text-xs text-emerald-800 font-semibold">
+            <CheckCircle2 size={13} />
+            <span>Approved</span>
+          </div>
+          <div className="text-xl font-bold text-emerald-900">{metrics.approved}</div>
         </div>
 
         <div 
           onClick={() => setSelectedStatusFilter("Not Selected")}
           className={`card p-3 cursor-pointer transition ${selectedStatusFilter === "Not Selected" ? "border-rose-400 bg-rose-50" : "hover:border-slate-300"}`}
         >
-          <div className="text-xs text-rose-700 font-medium">Not Selected</div>
+          <div className="flex items-center gap-1.5 text-xs text-rose-700 font-semibold">
+            <X size={13} />
+            <span>Not Selected</span>
+          </div>
           <div className="text-xl font-bold text-rose-700">{metrics.notSelected}</div>
         </div>
       </div>
@@ -348,15 +399,10 @@ export default function ApplicationManagement({ setActiveTab }) {
               onChange={(e) => setSelectedStatusFilter(e.target.value)}
               className="filter-select"
             >
-              <option value="ALL">All Statuses</option>
-              <option value="NEEDS_REVIEW">Needs Review (New & Screening)</option>
-              <option value="Submitted">Submitted</option>
-              <option value="Under Review">Under Review</option>
-              <option value="Shortlisted">Shortlisted</option>
-              <option value="Interview">Interview</option>
-              <option value="Selected">Selected</option>
-              <option value="Not Selected">Not Selected</option>
-              <option value="Withdrawn">Withdrawn</option>
+              <option value="ALL">All Statuses ({applications.length})</option>
+              <option value="PENDING_REVIEW">Pending Review ({metrics.pendingReview})</option>
+              <option value="Approved">Approved ({metrics.approved})</option>
+              <option value="Not Selected">Not Selected ({metrics.notSelected})</option>
             </select>
           </div>
         </div>
@@ -368,7 +414,7 @@ export default function ApplicationManagement({ setActiveTab }) {
           <div className="card-header-flex">
             <div>
               <h2 className="card-title">Applicant Roster ({filteredApplications.length})</h2>
-              <p className="card-subtitle">Quickly accept, reject, or open detailed resume and rubric reviews.</p>
+              <p className="card-subtitle">Admin review workspace: Approve or reject candidate applications with 1 click.</p>
             </div>
           </div>
 
@@ -387,8 +433,8 @@ export default function ApplicationManagement({ setActiveTab }) {
                     <th>Rubric Match</th>
                     <th>Experience & Skills</th>
                     <th>Submitted</th>
-                    <th>Stage</th>
-                    <th style={{ minWidth: "220px" }}>Quick Decisions & Review</th>
+                    <th>Status</th>
+                    <th style={{ minWidth: "240px" }}>Admin Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -435,28 +481,16 @@ export default function ApplicationManagement({ setActiveTab }) {
                         </td>
                         <td>
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            {/* 1-Click Accept / Shortlist */}
-                            {app.status !== "Shortlisted" && app.status !== "Selected" && (
+                            {/* 1-Click Approve */}
+                            {app.status !== "Approved" && (
                               <button 
-                                onClick={(e) => handleQuickAccept(e, app)}
-                                className="btn-quick-accept"
-                                title="1-Click Accept & Shortlist candidate"
+                                onClick={(e) => handleQuickApprove(e, app)}
+                                className="btn btn-xs btn-success font-semibold flex items-center gap-1"
+                                style={{ background: '#16a34a', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px' }}
+                                title="Approve candidate application"
                               >
-                                <Check size={12} />
-                                <span>Accept</span>
-                              </button>
-                            )}
-
-                            {/* 1-Click Select / Offer */}
-                            {app.status !== "Selected" && (
-                              <button 
-                                onClick={(e) => handleQuickSelect(e, app)}
-                                className="btn btn-emerald btn-xs"
-                                title="Approve & Mark as Selected"
-                                style={{ padding: "0.2rem 0.45rem", fontSize: "0.72rem" }}
-                              >
-                                <Award size={11} />
-                                <span>Offer</span>
+                                <CheckCircle2 size={12} />
+                                <span>Approve</span>
                               </button>
                             )}
 
@@ -464,21 +498,24 @@ export default function ApplicationManagement({ setActiveTab }) {
                             {app.status !== "Not Selected" && (
                               <button 
                                 onClick={(e) => handleQuickReject(e, app)}
-                                className="btn-quick-reject"
-                                title="Reject candidate"
+                                className="btn btn-xs btn-outline font-semibold flex items-center gap-1"
+                                style={{ color: '#dc2626', borderColor: '#fca5a5', background: '#fff', padding: '4px 8px', borderRadius: '4px' }}
+                                title="Reject candidate application"
                               >
                                 <X size={12} />
+                                <span>Reject</span>
                               </button>
                             )}
 
                             {/* Review & Resume View */}
                             <button 
                               onClick={() => handleOpenReview(app, "overview")}
-                              className="btn btn-outline btn-xs"
+                              className="btn btn-outline btn-xs flex items-center gap-1"
+                              style={{ padding: '4px 8px', borderRadius: '4px' }}
                               title="Open Full Review & Resume"
                             >
                               <Eye size={12} />
-                              <span>View</span>
+                              <span>Details</span>
                             </button>
                           </div>
                         </td>
@@ -1150,11 +1187,26 @@ export default function ApplicationManagement({ setActiveTab }) {
               </button>
               <div className="flex gap-2">
                 <button 
+                  onClick={() => handleSaveStatus("Approved", "Application approved by Administrator.")}
+                  className="btn btn-success flex items-center gap-1.5 font-semibold"
+                  style={{ background: '#16a34a', color: 'white', border: 'none' }}
+                >
+                  <CheckCircle2 size={16} />
+                  <span>Approve Application</span>
+                </button>
+                <button 
+                  onClick={() => handleSaveStatus("Not Selected", "Application not selected for this requisition.")}
+                  className="btn btn-outline flex items-center gap-1.5 font-semibold"
+                  style={{ color: '#dc2626', borderColor: '#fca5a5' }}
+                >
+                  <X size={16} />
+                  <span>Reject Application</span>
+                </button>
+                <button 
                   onClick={() => handleSaveStatus()}
                   className="btn btn-primary"
                 >
-                  <CheckCircle2 size={16} />
-                  <span>Save Updates</span>
+                  <span>Save Note</span>
                 </button>
               </div>
             </div>

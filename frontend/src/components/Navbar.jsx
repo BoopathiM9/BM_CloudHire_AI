@@ -34,21 +34,24 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
   const isRecruiter = currentUser?.role === "RECRUITER";
   const isCandidate = currentUser?.role === "CANDIDATE";
 
-  // Navigation Items for Recruiter Portal
+  // Count pending applications awaiting admin review
+  const pendingCount = applications.filter(a => a.status === "Pending Review" || a.status === "Submitted" || a.status === "Under Review").length;
+
+  // Navigation Items for Admin Portal
   const recruiterNavItems = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "jobs", label: "Jobs", icon: Briefcase },
-    { id: "applications", label: "Applications", icon: Users, badge: applications.length },
-    { id: "resumes", label: "Resumes", icon: FileText },
+    { id: "dashboard", label: "Overview", icon: LayoutDashboard },
+    { id: "jobs", label: "Job Requisitions", icon: Briefcase },
+    { id: "applications", label: "Applications & Approvals", icon: Users, badge: pendingCount > 0 ? pendingCount : applications.length },
     { id: "matching", label: "Candidate Matching", icon: Sliders, badgeAvail: true },
+    { id: "resumes", label: "Candidate Pool", icon: FileText },
     { id: "history", label: "Assignments & History", icon: History },
   ];
 
   // Navigation Items for Candidate / Public Portal
   const publicNavItems = [
     { id: "landing", label: "Home", icon: Home },
-    { id: "find-jobs", label: "Find Jobs", icon: Search },
-    ...(currentUser ? [{ id: "my-applications", label: "My Applications", icon: FileCheck2 }] : [])
+    { id: "find-jobs", label: "Careers", icon: Search },
+    { id: "my-applications", label: "Track Application", icon: FileCheck2 }
   ];
 
   const handleBrandClick = () => {
@@ -80,7 +83,7 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
               className={`segmented-btn ${!isRecruiter ? "active candidate" : ""}`}
               title="Browse Jobs & Apply as Candidate"
             >
-              Candidate Portal
+              Careers
             </button>
             <button 
               onClick={() => {
@@ -96,9 +99,10 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
                 }
               }}
               className={`segmented-btn ${isRecruiter ? "active recruiter" : ""}`}
-              title="Talent Panel, AI Matching & Exclusivity"
+              title="Admin Portal - Approvals, Jobs & Candidate Matching"
             >
-              Recruiter Portal
+              <Lock size={12} className="mr-1 inline" />
+              Admin Portal
             </button>
           </div>
         </div>
@@ -132,7 +136,7 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
           {/* Cloud Sync Status Indicator */}
           <div 
             className="system-status-indicator" 
-            title={backendConnected ? "Connected to AWS Lambda & DynamoDB single-table backend" : "Local Browser State Active"}
+            title={backendConnected ? "Connected to AWS Lambda & DynamoDB single-table backend" : "Local State Active"}
           >
             <span className={`status-dot ${backendConnected ? "connected" : "mock"}`}></span>
             <span className="hidden-mobile">{backendConnected ? "AWS Cloud" : "Local"}</span>
@@ -143,17 +147,18 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => onOpenAuth("candidate-login")}
-                className="btn btn-outline btn-sm"
+                className="btn btn-outline btn-sm hidden-mobile"
               >
                 <span>Candidate Sign In</span>
               </button>
 
               <button 
                 onClick={() => onOpenAuth("recruiter-login")}
-                className="btn btn-primary btn-sm"
+                className="btn btn-primary btn-sm flex items-center gap-1.5"
+                title="Admin Sign In: admin / boopathi_2004"
               >
                 <Lock size={13} />
-                <span>Recruiter Portal</span>
+                <span>Admin Login</span>
               </button>
             </div>
           ) : (
@@ -169,7 +174,7 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
                 </div>
                 <div className="avatar-info hidden-mobile">
                   <span className="avatar-name">{currentUser.name}</span>
-                  <span className="avatar-role">{currentUser.role === "RECRUITER" ? "Recruiter / Lead" : "Candidate"}</span>
+                  <span className="avatar-role">{currentUser.role === "RECRUITER" ? (currentUser.username === "admin" || currentUser.email === "admin@bmcloudhire.com" ? "System Administrator" : "Recruiter / Lead") : "Candidate"}</span>
                 </div>
                 <ChevronDown size={14} className="text-muted hidden-mobile" />
               </button>
@@ -179,7 +184,7 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
                   <div className="dropdown-header">
                     <div className="dropdown-name">{currentUser.name}</div>
                     <div className="dropdown-email">{currentUser.email}</div>
-                    <span className="badge badge-subtle mt-1 text-xs">{currentUser.role}</span>
+                    <span className="badge badge-subtle mt-1 text-xs font-semibold">{currentUser.username === "admin" || currentUser.email === "admin@bmcloudhire.com" ? "ADMINISTRATOR" : currentUser.role}</span>
                   </div>
                   <div className="dropdown-divider"></div>
 
@@ -191,15 +196,15 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
                       </div>
                       <div className="dropdown-item" onClick={() => { setActiveTab("jobs"); setShowProfileMenu(false); }}>
                         <Briefcase size={15} />
-                        <span>Job Requisitions</span>
+                        <span>Job Management</span>
                       </div>
                       <div className="dropdown-item" onClick={() => { setActiveTab("applications"); setShowProfileMenu(false); }}>
                         <Users size={15} />
-                        <span>Inbound Applications</span>
+                        <span>Applications & Approvals</span>
                       </div>
                       <div className="dropdown-item" onClick={() => { setActiveTab("find-jobs"); setShowProfileMenu(false); }}>
                         <Search size={15} />
-                        <span>View Public Job Board</span>
+                        <span>View Public Careers Board</span>
                       </div>
                     </>
                   ) : (

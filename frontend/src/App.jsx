@@ -41,12 +41,7 @@ function AppContent() {
 
   const handleApplyJob = (job) => {
     setSelectedJobForModal(job);
-    if (!currentUser) {
-      setAuthModalMode("candidate-login");
-      setAuthModalOpen(true);
-    } else {
-      setApplyModalOpen(true);
-    }
+    setApplyModalOpen(true);
   };
 
   const handleAuthSuccess = () => {
