@@ -70,7 +70,9 @@ export default function TopHeader({
       case "find-jobs":
         return { section: "Career Board", title: "Available Jobs" };
       case "my-applications":
-        return { section: "Candidate Center", title: "My Applications & Status" };
+        return { section: "Candidate Center", title: "My Applications" };
+      case "my-profile":
+        return { section: "Candidate Center", title: "My Profile" };
       case "landing":
         return { section: "Platform", title: "Company Overview" };
       default:

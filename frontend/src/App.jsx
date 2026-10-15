@@ -6,6 +6,7 @@ import SettingsModal from "./components/SettingsModal";
 import LandingPage from "./pages/LandingPage";
 import FindJobs from "./pages/FindJobs";
 import MyApplications from "./pages/MyApplications";
+import MyProfile from "./pages/MyProfile";
 import Dashboard from "./pages/Dashboard";
 import JobManagement from "./pages/JobManagement";
 import ApplicationManagement from "./pages/ApplicationManagement";
@@ -113,6 +114,12 @@ function AppContent() {
 
           {activeTab === "my-applications" && (
             <MyApplications 
+              setActiveTab={setActiveTab}
+            />
+          )}
+
+          {activeTab === "my-profile" && (
+            <MyProfile 
               setActiveTab={setActiveTab}
             />
           )}

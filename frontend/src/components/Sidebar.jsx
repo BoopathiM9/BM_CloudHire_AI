@@ -86,26 +86,26 @@ export default function Sidebar({
     }
   ];
 
-  // Candidate Navigation
+  // Candidate Navigation (Per PDF Specification: Find Jobs, My Applications, My Profile, and Settings)
   const candidateNav = [
     {
       id: "find-jobs",
-      label: "Available Jobs",
+      label: "Find Jobs",
       icon: Search,
       badge: publishedJobs.length > 0 ? publishedJobs.length : null,
       badgeType: "mint"
     },
     {
       id: "my-applications",
-      label: "My Applications & Status",
+      label: "My Applications",
       icon: FileCheck2,
       badge: candidateApplications.length > 0 ? candidateApplications.length : null,
       badgeType: "accent"
     },
     {
-      id: "landing",
-      label: "Company Overview",
-      icon: Home
+      id: "my-profile",
+      label: "My Profile",
+      icon: User
     }
   ];
 

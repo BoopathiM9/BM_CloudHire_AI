@@ -29,7 +29,10 @@ import {
   Mail,
   Phone,
   Building2,
-  ExternalLink
+  ExternalLink,
+  HelpCircle,
+  ArrowUpDown,
+  ShieldAlert
 } from "lucide-react";
 
 export default function ApplicationManagement({ setActiveTab }) {
@@ -43,10 +46,15 @@ export default function ApplicationManagement({ setActiveTab }) {
     logActivity 
   } = useApp();
 
+  // 1. Requisition Selection (PDF Requirement: Admin FIRST selects a job title)
+  const [selectedJobFilter, setSelectedJobFilter] = useState(() => {
+    return jobs.length > 0 ? (jobs[0].id || jobs[0].jobId) : "ALL";
+  });
+
   const [viewMode, setViewMode] = useState("table"); // "table" | "kanban" | "cards"
-  const [selectedJobFilter, setSelectedJobFilter] = useState("ALL");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("score"); // "score" | "date" | "exp"
   
   // Review Modal State
   const [activeModalApp, setActiveModalApp] = useState(null);
@@ -55,58 +63,51 @@ export default function ApplicationManagement({ setActiveTab }) {
   const [editingStatus, setEditingStatus] = useState("Submitted");
   const [toastMessage, setToastMessage] = useState(null);
 
+  // Confirmation Modal for High-Impact Decisions (Reject, Request More Info, Final Approve)
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    app: null,
+    action: "", // "Reject" | "Request More Information" | "Approve"
+    note: "",
+    title: "",
+    subtitle: ""
+  });
+
   const showNotification = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Metrics counts
-  const metrics = useMemo(() => {
-    const total = applications.length;
-    const pendingReview = applications.filter(a => a.status === "Pending Review" || a.status === "Submitted" || a.status === "Under Review").length;
-    const approved = applications.filter(a => a.status === "Approved" || a.status === "Selected" || a.status === "Shortlisted").length;
-    const notSelected = applications.filter(a => a.status === "Not Selected" || a.status === "Rejected").length;
-    const interview = applications.filter(a => a.status === "Interview").length;
-    return {
-      total,
-      pendingReview,
-      approved,
-      interview,
-      notSelected
-    };
-  }, [applications]);
+  // Target Job object
+  const currentSelectedJob = jobs.find(j => (j.id === selectedJobFilter || j.jobId === selectedJobFilter));
 
   // Compute matched score for an application against its job
   const getAppMatchDetails = (app) => {
     const targetJob = jobs.find(j => (j.id === app.jobId || j.jobId === app.jobId));
     if (!targetJob) return null;
 
-    // Find candidate record or build synthetic candidate from application
     const cand = candidates.find(c => c.email?.toLowerCase() === app.candidateEmail?.toLowerCase()) || {
       name: app.candidateName,
       email: app.candidateEmail,
       skills: app.skills || [],
       experienceYears: app.experienceYears || 2,
-      projects: ["Enterprise Cloud Migration", "High Throughput Microservices"],
+      projects: ["Enterprise Cloud Ingestion", "Distributed Microservices Architecture"],
       certifications: ["AWS Certified Solutions Architect"]
     };
 
     return evaluateCandidateMatch(cand, targetJob);
   };
 
+  // Filtered & Sorted Applications (Shows ONLY candidates for selected job unless 'ALL' chosen)
   const filteredApplications = useMemo(() => {
-    return applications.filter(app => {
+    const list = applications.filter(app => {
       // 1. Job Filter
       const matchJob = selectedJobFilter === "ALL" || app.jobId === selectedJobFilter;
 
       // 2. Status Filter
       let matchStatus = true;
       if (selectedStatusFilter === "PENDING_REVIEW") {
-        matchStatus = app.status === "Pending Review" || app.status === "Submitted" || app.status === "Under Review";
-      } else if (selectedStatusFilter === "Approved") {
-        matchStatus = app.status === "Approved" || app.status === "Selected" || app.status === "Shortlisted";
-      } else if (selectedStatusFilter === "Not Selected") {
-        matchStatus = app.status === "Not Selected" || app.status === "Rejected";
+        matchStatus = app.status === "Submitted" || app.status === "Under Review" || app.status === "Pending Review";
       } else if (selectedStatusFilter !== "ALL") {
         matchStatus = app.status === selectedStatusFilter;
       }
@@ -117,16 +118,47 @@ export default function ApplicationManagement({ setActiveTab }) {
         app.candidateName?.toLowerCase().includes(q) ||
         app.candidateEmail?.toLowerCase().includes(q) ||
         app.jobTitle?.toLowerCase().includes(q) ||
-        app.id?.toLowerCase().includes(q);
+        app.id?.toLowerCase().includes(q) ||
+        (app.skills || []).some(s => s.toLowerCase().includes(q));
 
       return matchJob && matchStatus && matchSearch;
     });
-  }, [applications, selectedJobFilter, selectedStatusFilter, searchQuery]);
+
+    // Sorting
+    return list.sort((a, b) => {
+      if (sortBy === "score") {
+        const scoreA = getAppMatchDetails(a)?.totalScore || 0;
+        const scoreB = getAppMatchDetails(b)?.totalScore || 0;
+        return scoreB - scoreA;
+      } else if (sortBy === "date") {
+        return new Date(b.submittedAt) - new Date(a.submittedAt);
+      } else if (sortBy === "exp") {
+        return (b.experienceYears || 0) - (a.experienceYears || 0);
+      }
+      return 0;
+    });
+  }, [applications, selectedJobFilter, selectedStatusFilter, searchQuery, sortBy, jobs, candidates]);
+
+  // Metrics for currently selected job
+  const jobMetrics = useMemo(() => {
+    const targetApps = selectedJobFilter === "ALL" 
+      ? applications 
+      : applications.filter(a => a.jobId === selectedJobFilter);
+
+    const total = targetApps.length;
+    const underReview = targetApps.filter(a => a.status === "Submitted" || a.status === "Under Review" || a.status === "Pending Review").length;
+    const shortlisted = targetApps.filter(a => a.status === "Shortlisted").length;
+    const approved = targetApps.filter(a => a.status === "Approved" || a.status === "Selected").length;
+    const rejected = targetApps.filter(a => a.status === "Rejected" || a.status === "Not Selected").length;
+    const moreInfo = targetApps.filter(a => a.status === "More Information Required").length;
+
+    return { total, underReview, shortlisted, approved, rejected, moreInfo };
+  }, [applications, selectedJobFilter]);
 
   const handleOpenReview = (app, defaultTab = "overview") => {
     setActiveModalApp(app);
     setActiveTabModal(defaultTab);
-    setEditingStatus(app.status || "Pending Review");
+    setEditingStatus(app.status || "Submitted");
     setEditingNote(app.statusNote || "");
   };
 
@@ -139,21 +171,53 @@ export default function ApplicationManagement({ setActiveTab }) {
     setActiveModalApp(null);
   };
 
-  // 1-Click Approve Application
-  const handleQuickApprove = (e, app) => {
-    e.stopPropagation();
-    updateApplicationStatus(app.id, "Approved", "Application and resume approved by Administrator. Our team will contact you shortly to schedule your interview.");
-    showNotification(`✓ Approved application for ${app.candidateName}!`);
+  // Open confirmation modal for decisions that require notes (Reject / Request More Info)
+  const openConfirmDecisionModal = (app, actionType) => {
+    if (actionType === "Reject") {
+      setConfirmModal({
+        isOpen: true,
+        app,
+        action: "Rejected",
+        note: "",
+        title: `Reject Application: ${app.candidateName}`,
+        subtitle: `Please provide a reason or constructive note for rejecting this application for ${app.jobTitle}.`
+      });
+    } else if (actionType === "More Information Required") {
+      setConfirmModal({
+        isOpen: true,
+        app,
+        action: "More Information Required",
+        note: "",
+        title: `Request Additional Information: ${app.candidateName}`,
+        subtitle: `Specify what details, updated certifications, or portfolio samples are needed from the candidate.`
+      });
+    } else if (actionType === "Approve") {
+      setConfirmModal({
+        isOpen: true,
+        app,
+        action: "Approved",
+        note: "Approved to proceed to the next recruitment stage.",
+        title: `Approve Candidate for Next Stage: ${app.candidateName}`,
+        subtitle: `Candidate will be marked as Approved for technical screening and panel interviews. (Separate from exclusive assignment).`
+      });
+    }
   };
 
-  // 1-Click Reject Application
-  const handleQuickReject = (e, app) => {
-    e.stopPropagation();
-    updateApplicationStatus(app.id, "Not Selected", "Application not selected for this requisition.");
-    showNotification(`Marked application for ${app.candidateName} as Not Selected.`);
+  const executeConfirmDecision = () => {
+    if (!confirmModal.app) return;
+    updateApplicationStatus(confirmModal.app.id, confirmModal.action, confirmModal.note || "Decision recorded by reviewer.");
+    showNotification(`Application updated: ${confirmModal.app.candidateName} is now "${confirmModal.action}".`);
+    setConfirmModal({ isOpen: false, app: null, action: "", note: "", title: "", subtitle: "" });
   };
 
-  // Assign Candidate Exclusively
+  // 1-Click Fast Actions (Under Review / Shortlist)
+  const handleFastStatus = (e, app, newStatus, defaultNote) => {
+    e.stopPropagation();
+    updateApplicationStatus(app.id, newStatus, defaultNote);
+    showNotification(`${app.candidateName} marked as "${newStatus}"`);
+  };
+
+  // Exclusive Assignment
   const handleDirectAssign = (app) => {
     const cand = candidates.find(c => c.email?.toLowerCase() === app.candidateEmail?.toLowerCase());
     const candId = cand ? (cand.candidateId || cand.id) : null;
@@ -167,89 +231,23 @@ export default function ApplicationManagement({ setActiveTab }) {
     setActiveModalApp(null);
   };
 
-  const handleLaunchMatching = (jobId) => {
-    setSelectedJobId(jobId);
-    setActiveTab("matching");
-  };
-
   const getStatusBadge = (status) => {
     switch (status) {
-      case "Pending Review":
       case "Submitted":
-        return (
-          <span 
-            className="badge badge-warning" 
-            style={{ 
-              background: '#fef3c7', 
-              color: '#92400e', 
-              border: '1px solid #fde68a', 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '4px',
-              fontWeight: 600
-            }}
-          >
-            <Clock size={12} /> Pending Review
-          </span>
-        );
+        return <span className="badge badge-subtle">Submitted</span>;
+      case "Under Review":
+      case "Pending Review":
+        return <span className="badge badge-warning" style={{ background: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A" }}>Under Review</span>;
+      case "Shortlisted":
+        return <span className="badge badge-mint font-bold">Shortlisted</span>;
       case "Approved":
       case "Selected":
-        return (
-          <span 
-            className="badge badge-success" 
-            style={{ 
-              background: '#dcfce7', 
-              color: '#166534', 
-              border: '1px solid #bbf7d0', 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '4px',
-              fontWeight: 600
-            }}
-          >
-            <CheckCircle2 size={12} /> Approved
-          </span>
-        );
-      case "Under Review":
-        return <span className="badge badge-primary">Under Review</span>;
-      case "Shortlisted":
-        return (
-          <span 
-            className="badge badge-success" 
-            style={{ 
-              background: '#dcfce7', 
-              color: '#166534', 
-              border: '1px solid #bbf7d0', 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '4px' 
-            }}
-          >
-            <CheckCircle2 size={12} /> Approved / Shortlist
-          </span>
-        );
-      case "Interview":
-        return <span className="badge badge-purple">Interview Stage</span>;
-      case "Not Selected":
+        return <span className="badge badge-success font-bold" style={{ background: "#DDF5EB", color: "#173C35", border: "1px solid #52BFA0" }}>Approved (Next Stage)</span>;
       case "Rejected":
-        return (
-          <span 
-            className="badge badge-danger" 
-            style={{ 
-              background: '#fee2e2', 
-              color: '#991b1b', 
-              border: '1px solid #fecaca', 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '4px',
-              fontWeight: 600
-            }}
-          >
-            <X size={12} /> Not Selected
-          </span>
-        );
-      case "Withdrawn":
-        return <span className="badge badge-muted">Withdrawn</span>;
+      case "Not Selected":
+        return <span className="badge badge-danger" style={{ background: "#FEE2E2", color: "#991B1B", border: "1px solid #FECACA" }}>Rejected</span>;
+      case "More Information Required":
+        return <span className="badge badge-purple" style={{ background: "#EDE9FE", color: "#6D28D9", border: "1px solid #DDD6FE" }}>More Info Req.</span>;
       default:
         return <span className="badge badge-subtle">{status}</span>;
     }
@@ -266,11 +264,15 @@ export default function ApplicationManagement({ setActiveTab }) {
       )}
 
       {/* Header */}
-      <div className="admin-header-flex">
+      <div className="admin-header-flex mb-5">
         <div>
-          <h1 className="admin-header-title">Candidate Applications & Approvals</h1>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="badge badge-forest">Recruiter Workspace</span>
+            <span className="badge badge-mint">Applications & Approvals</span>
+          </div>
+          <h1 className="admin-header-title">Applications & Candidate Approvals</h1>
           <p className="admin-header-subtitle">
-            Inspect incoming candidate applications, review technical qualifications, and approve or reject submissions with 1 click.
+            Select a job requisition to review candidates who applied to that role. Inspect verified resumes, evaluate AI rubric evidence, and record decision actions.
           </p>
         </div>
 
@@ -278,6 +280,7 @@ export default function ApplicationManagement({ setActiveTab }) {
           {/* View Mode Toggle */}
           <div className="view-mode-toggle">
             <button 
+              type="button"
               onClick={() => setViewMode("table")}
               className={`view-mode-btn ${viewMode === "table" ? "active" : ""}`}
               title="Table view"
@@ -286,17 +289,10 @@ export default function ApplicationManagement({ setActiveTab }) {
               <span>Table</span>
             </button>
             <button 
-              onClick={() => setViewMode("kanban")}
-              className={`view-mode-btn ${viewMode === "kanban" ? "active" : ""}`}
-              title="Pipeline Kanban board"
-            >
-              <Kanban size={14} />
-              <span>Pipeline</span>
-            </button>
-            <button 
+              type="button"
               onClick={() => setViewMode("cards")}
               className={`view-mode-btn ${viewMode === "cards" ? "active" : ""}`}
-              title="Candidate cards grid"
+              title="Cards view"
             >
               <LayoutGrid size={14} />
               <span>Cards</span>
@@ -304,9 +300,9 @@ export default function ApplicationManagement({ setActiveTab }) {
           </div>
 
           <button 
+            type="button"
             onClick={() => setActiveTab("jobs")}
-            className="btn btn-primary"
-            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+            className="btn btn-outline"
           >
             <Briefcase size={15} />
             <span>Job Requisitions</span>
@@ -314,19 +310,83 @@ export default function ApplicationManagement({ setActiveTab }) {
         </div>
       </div>
 
-      {/* Metrics Quick Filter Bar - 4 Column Responsive Grid */}
-      <div className="admin-metrics-grid">
+      {/* STEP 1: JOB REQUISITION SELECTOR (PDF Core Rule: Admin FIRST selects a job title) */}
+      <div className="card p-4 mb-5" style={{ background: "#FFFFFF", border: "1px solid var(--border-color)" }}>
+        <div className="flex justify-between items-center mb-3">
+          <div className="flex items-center gap-2">
+            <Briefcase size={16} className="text-forest" />
+            <span className="font-bold text-xs uppercase tracking-wider text-forest">
+              1. Select Job Requisition to Review Applicants
+            </span>
+          </div>
+          <span className="text-xs text-muted">
+            Showing applicants for: <strong>{currentSelectedJob ? currentSelectedJob.title : "All Requisitions"}</strong>
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+          {jobs.map(job => {
+            const jId = job.id || job.jobId;
+            const isSelected = selectedJobFilter === jId;
+            const jobAppsCount = applications.filter(a => a.jobId === jId).length;
+
+            return (
+              <div 
+                key={jId}
+                onClick={() => setSelectedJobFilter(jId)}
+                className={`p-3 rounded-lg border cursor-pointer transition ${
+                  isSelected 
+                    ? "border-emerald-600 bg-emerald-50/50 shadow-sm" 
+                    : "border-slate-200 bg-white hover:border-slate-300"
+                }`}
+                style={isSelected ? { borderColor: "var(--forest-green)", background: "var(--pale-mint)" } : {}}
+              >
+                <div className="flex justify-between items-start mb-1">
+                  <span className="font-bold text-xs truncate max-w-[170px]" style={{ color: "var(--forest-green)" }}>
+                    {job.title}
+                  </span>
+                  <span className="badge badge-forest text-[10px] px-1.5 py-0.5">
+                    {jobAppsCount}
+                  </span>
+                </div>
+                <div className="text-[11px] text-muted flex items-center justify-between mt-1">
+                  <span>{jId}</span>
+                  <span className="font-semibold text-slate-700">{job.location?.split(" ")[0] || "Remote"}</span>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* All Requisitions Option */}
+          <div 
+            onClick={() => setSelectedJobFilter("ALL")}
+            className={`p-3 rounded-lg border cursor-pointer transition flex flex-col justify-center text-center ${
+              selectedJobFilter === "ALL" 
+                ? "border-emerald-600 bg-emerald-50/50 shadow-sm" 
+                : "border-slate-200 bg-white hover:border-slate-300"
+            }`}
+            style={selectedJobFilter === "ALL" ? { borderColor: "var(--forest-green)", background: "var(--pale-mint)" } : {}}
+          >
+            <span className="font-bold text-xs" style={{ color: "var(--forest-green)" }}>
+              All Requisitions
+            </span>
+            <span className="text-[11px] text-muted mt-0.5">
+              {applications.length} Total Applications
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Metrics for the Selected Requisition */}
+      <div className="admin-metrics-grid mb-4">
         <div 
           onClick={() => setSelectedStatusFilter("ALL")}
           className={`admin-metric-card ${selectedStatusFilter === "ALL" ? "active" : ""}`}
         >
           <div className="admin-metric-top">
-            <span className="admin-metric-label">
-              <Users size={14} />
-              <span>All Applications</span>
-            </span>
+            <span className="admin-metric-label">All Applicants</span>
           </div>
-          <div className="admin-metric-count">{metrics.total}</div>
+          <div className="admin-metric-count">{jobMetrics.total}</div>
         </div>
 
         <div 
@@ -334,12 +394,19 @@ export default function ApplicationManagement({ setActiveTab }) {
           className={`admin-metric-card pending ${selectedStatusFilter === "PENDING_REVIEW" ? "active" : ""}`}
         >
           <div className="admin-metric-top">
-            <span className="admin-metric-label" style={{ color: "#d97706" }}>
-              <Clock size={14} />
-              <span>Pending Review</span>
-            </span>
+            <span className="admin-metric-label" style={{ color: "#d97706" }}>Under Review</span>
           </div>
-          <div className="admin-metric-count" style={{ color: "#b45309" }}>{metrics.pendingReview}</div>
+          <div className="admin-metric-count" style={{ color: "#b45309" }}>{jobMetrics.underReview}</div>
+        </div>
+
+        <div 
+          onClick={() => setSelectedStatusFilter("Shortlisted")}
+          className={`admin-metric-card ${selectedStatusFilter === "Shortlisted" ? "active" : ""}`}
+        >
+          <div className="admin-metric-top">
+            <span className="admin-metric-label" style={{ color: "#059669" }}>Shortlisted</span>
+          </div>
+          <div className="admin-metric-count" style={{ color: "#059669" }}>{jobMetrics.shortlisted}</div>
         </div>
 
         <div 
@@ -347,35 +414,29 @@ export default function ApplicationManagement({ setActiveTab }) {
           className={`admin-metric-card approved ${selectedStatusFilter === "Approved" ? "active" : ""}`}
         >
           <div className="admin-metric-top">
-            <span className="admin-metric-label" style={{ color: "#059669" }}>
-              <CheckCircle2 size={14} />
-              <span>Approved</span>
-            </span>
+            <span className="admin-metric-label" style={{ color: "var(--forest-green)" }}>Approved (Next Stage)</span>
           </div>
-          <div className="admin-metric-count" style={{ color: "#047857" }}>{metrics.approved}</div>
+          <div className="admin-metric-count" style={{ color: "var(--forest-green)" }}>{jobMetrics.approved}</div>
         </div>
 
         <div 
-          onClick={() => setSelectedStatusFilter("Not Selected")}
-          className={`admin-metric-card rejected ${selectedStatusFilter === "Not Selected" ? "active" : ""}`}
+          onClick={() => setSelectedStatusFilter("Rejected")}
+          className={`admin-metric-card rejected ${selectedStatusFilter === "Rejected" ? "active" : ""}`}
         >
           <div className="admin-metric-top">
-            <span className="admin-metric-label" style={{ color: "#e11d48" }}>
-              <X size={14} />
-              <span>Not Selected</span>
-            </span>
+            <span className="admin-metric-label" style={{ color: "#e11d48" }}>Rejected</span>
           </div>
-          <div className="admin-metric-count" style={{ color: "#be123c" }}>{metrics.notSelected}</div>
+          <div className="admin-metric-count" style={{ color: "#be123c" }}>{jobMetrics.rejected}</div>
         </div>
       </div>
 
-      {/* Filter Toolbar */}
-      <div className="admin-toolbar-row">
+      {/* Filter & Sorting Toolbar */}
+      <div className="admin-toolbar-row mb-4">
         <div className="admin-search-wrap">
-          <Search size={17} className="search-icon" />
+          <Search size={16} className="search-icon" />
           <input 
             type="text" 
-            placeholder="Search applicants by name, email, skills, or application ID..."
+            placeholder="Search candidates by name, email, skills..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="admin-search-input"
@@ -383,148 +444,210 @@ export default function ApplicationManagement({ setActiveTab }) {
         </div>
 
         <div className="admin-filter-selects">
-          <select 
-            value={selectedJobFilter} 
-            onChange={(e) => setSelectedJobFilter(e.target.value)}
-            className="admin-select"
-          >
-            <option value="ALL">All Positions ({applications.length})</option>
-            {jobs.map(j => (
-              <option key={j.id || j.jobId} value={j.id || j.jobId}>
-                {j.title}
-              </option>
-            ))}
-          </select>
-
+          {/* Status Filter */}
           <select 
             value={selectedStatusFilter} 
             onChange={(e) => setSelectedStatusFilter(e.target.value)}
             className="admin-select"
           >
-            <option value="ALL">All Statuses ({applications.length})</option>
-            <option value="PENDING_REVIEW">Pending Review ({metrics.pendingReview})</option>
-            <option value="Approved">Approved ({metrics.approved})</option>
-            <option value="Not Selected">Not Selected ({metrics.notSelected})</option>
+            <option value="ALL">All Statuses ({jobMetrics.total})</option>
+            <option value="PENDING_REVIEW">Under Review ({jobMetrics.underReview})</option>
+            <option value="Shortlisted">Shortlisted ({jobMetrics.shortlisted})</option>
+            <option value="Approved">Approved for Next Stage ({jobMetrics.approved})</option>
+            <option value="More Information Required">More Info Required ({jobMetrics.moreInfo})</option>
+            <option value="Rejected">Rejected ({jobMetrics.rejected})</option>
+          </select>
+
+          {/* Sort By Dropdown */}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="admin-select"
+          >
+            <option value="score">Sort by AI Match Score</option>
+            <option value="date">Sort by Submission Date</option>
+            <option value="exp">Sort by Experience (Years)</option>
           </select>
         </div>
       </div>
 
-      {/* VIEW 1: TABLE VIEW */}
+      {/* APPLICATIONS LIST VIEW: TABLE */}
       {viewMode === "table" && (
-        <div className="admin-table-card">
-          <div className="admin-table-header-box">
+        <div className="card overflow-hidden">
+          <div className="card-header-flex p-4 border-b border-slate-100">
             <div>
-              <h2 className="admin-table-title">Applicant Roster ({filteredApplications.length})</h2>
-              <p className="admin-table-subtitle">Review incoming applications: Grant 1-click approvals or open technical details.</p>
+              <h2 className="card-title text-base text-forest">
+                Candidates for {currentSelectedJob ? currentSelectedJob.title : "All Positions"} ({filteredApplications.length})
+              </h2>
+              <p className="card-subtitle text-xs">
+                Candidate approval confirms progress to the next recruitment stage. Final hiring assignment is managed separately.
+              </p>
             </div>
           </div>
 
           {filteredApplications.length === 0 ? (
-            <div style={{ padding: "3rem", textAlign: "center", color: "#64748b" }}>
-              <Users size={40} style={{ margin: "0 auto 0.75rem", opacity: 0.5 }} />
-              <p style={{ margin: 0 }}>No applications match your current filters.</p>
+            <div className="p-12 text-center text-muted">
+              <Users size={36} className="mx-auto mb-2 text-muted" />
+              <p className="font-semibold text-slate-700">No applicants found for this requisition.</p>
+              <p className="text-xs text-muted mt-1">Try selecting a different job requisition or clearing active search filters.</p>
             </div>
           ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table className="admin-data-table">
+            <div className="table-responsive">
+              <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Applicant Profile</th>
-                    <th>Applied Position</th>
-                    <th>Rubric Match</th>
-                    <th>Experience & Skills</th>
-                    <th>Submitted</th>
-                    <th>Status</th>
-                    <th style={{ minWidth: "220px" }}>Admin Actions</th>
+                    <th>Candidate & ID</th>
+                    <th>Submission Date</th>
+                    <th>Resume Status</th>
+                    <th>Experience Summary</th>
+                    <th>Extracted Skills</th>
+                    <th>AI Match Score</th>
+                    <th>Application Status</th>
+                    <th style={{ minWidth: "260px" }}>Reviewer Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredApplications.map(app => {
                     const match = getAppMatchDetails(app);
                     return (
-                      <tr key={app.id}>
+                      <tr key={app.id} className="hover:bg-slate-50 transition">
+                        {/* 1. Candidate Name & ID */}
                         <td>
-                          <div style={{ fontWeight: 700, color: "#0f172a", fontSize: "0.92rem" }}>{app.candidateName}</div>
-                          <div style={{ color: "#64748b", fontSize: "0.78rem", marginTop: "1px" }}>{app.candidateEmail}</div>
-                          <span style={{ display: "inline-block", fontFamily: "monospace", fontSize: "0.72rem", fontWeight: 600, background: "#f1f5f9", color: "#475569", padding: "2px 6px", borderRadius: "4px", marginTop: "4px" }}>
-                            {app.id}
+                          <div className="font-bold text-sm text-forest">{app.candidateName}</div>
+                          <div className="text-xs text-muted">{app.candidateEmail}</div>
+                          <span className="reference-pill text-[10px] mt-1 inline-block">{app.id}</span>
+                        </td>
+
+                        {/* 2. Submission Date */}
+                        <td className="text-xs text-slate-600 whitespace-nowrap">
+                          {new Date(app.submittedAt).toLocaleDateString()}
+                        </td>
+
+                        {/* 3. Resume Status */}
+                        <td>
+                          <span className="badge badge-mint text-[11px] inline-flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                            Processed
                           </span>
                         </td>
+
+                        {/* 4. Experience Summary */}
                         <td>
-                          <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "0.88rem" }}>{app.jobTitle}</div>
-                          <span style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{app.jobId}</span>
-                        </td>
-                        <td>
-                          {match ? (
-                            <span 
-                              style={
-                                match.totalScore >= 80 
-                                  ? { background: '#dcfce7', color: '#15803d', border: '1px solid #86efac', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, fontSize: '0.78rem' }
-                                  : match.totalScore >= 60 
-                                    ? { background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, fontSize: '0.78rem' }
-                                    : { background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, fontSize: '0.78rem' }
-                              }
-                            >
-                              {match.totalScore}% Match
-                            </span>
-                          ) : (
-                            <span style={{ color: "#94a3b8", fontSize: "0.8rem" }}>—</span>
-                          )}
-                        </td>
-                        <td>
-                          <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#334155", marginBottom: "4px" }}>
-                            {app.experienceYears} Yrs Experience
+                          <div className="text-xs font-semibold text-slate-800">
+                            {app.experienceYears} Years Exp
                           </div>
-                          <div className="skills-badge-list">
+                          <div className="text-[11px] text-muted">Verified background</div>
+                        </td>
+
+                        {/* 5. Extracted Skills */}
+                        <td>
+                          <div className="flex flex-wrap gap-1 max-w-[200px]">
                             {(app.skills || []).slice(0, 3).map((s, idx) => (
-                              <span key={idx} className="skill-tag">{s}</span>
+                              <span key={idx} className="badge badge-subtle text-[11px]">{s}</span>
                             ))}
                             {(app.skills || []).length > 3 && (
-                              <span style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 600 }}>+{app.skills.length - 3}</span>
+                              <span className="text-[11px] text-muted">+{app.skills.length - 3}</span>
                             )}
                           </div>
                         </td>
-                        <td style={{ color: "#64748b", fontSize: "0.8rem", whiteSpace: "nowrap" }}>
-                          {new Date(app.submittedAt).toLocaleDateString()}
+
+                        {/* 6. AI Match Score */}
+                        <td>
+                          {match ? (
+                            <div>
+                              <span className={`badge ${match.totalScore >= 80 ? "badge-success" : match.totalScore >= 60 ? "badge-mint" : "badge-subtle"} font-bold text-xs`}>
+                                {match.totalScore} / 100
+                              </span>
+                              <div className="text-[10px] text-muted mt-0.5">{match.totalScore >= 80 ? "Top Match" : "Qualified"}</div>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted">—</span>
+                          )}
                         </td>
+
+                        {/* 7. Application Status */}
                         <td>
                           {getStatusBadge(app.status)}
                         </td>
+
+                        {/* 8. Reviewer Actions (Under Review, Shortlist, Approve, Reject, More Info) */}
                         <td>
-                          <div className="admin-actions-cell">
-                            {/* 1-Click Approve */}
-                            {app.status !== "Approved" && (
-                              <button 
-                                onClick={(e) => handleQuickApprove(e, app)}
-                                className="btn-approve"
-                                title="Approve candidate application"
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {/* Detailed Inspection */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenReview(app, "overview")}
+                              className="btn btn-outline btn-xs"
+                              title="Inspect full candidate details and resume"
+                            >
+                              <Eye size={12} />
+                              <span>Review</span>
+                            </button>
+
+                            {/* Mark Under Review */}
+                            {app.status === "Submitted" && (
+                              <button
+                                type="button"
+                                onClick={(e) => handleFastStatus(e, app, "Under Review", "Application moved into active recruiter review.")}
+                                className="btn btn-outline btn-xs"
+                                title="Move to Under Review"
                               >
-                                <CheckCircle2 size={13} />
+                                <span>Under Review</span>
+                              </button>
+                            )}
+
+                            {/* Shortlist */}
+                            {app.status !== "Shortlisted" && app.status !== "Approved" && (
+                              <button
+                                type="button"
+                                onClick={(e) => handleFastStatus(e, app, "Shortlisted", "Candidate cleared technical benchmarks and is shortlisted.")}
+                                className="btn btn-outline btn-xs text-emerald-800"
+                                style={{ background: "var(--pale-mint)", borderColor: "var(--mint-green)" }}
+                                title="Shortlist candidate"
+                              >
+                                <Check size={12} />
+                                <span>Shortlist</span>
+                              </button>
+                            )}
+
+                            {/* Approve (Next Stage) */}
+                            {app.status !== "Approved" && (
+                              <button
+                                type="button"
+                                onClick={() => openConfirmDecisionModal(app, "Approve")}
+                                className="btn btn-primary btn-xs"
+                                style={{ background: "var(--forest-green)", color: "#FFFFFF" }}
+                                title="Approve candidate to proceed to next recruitment stage"
+                              >
+                                <Award size={12} />
                                 <span>Approve</span>
                               </button>
                             )}
 
-                            {/* 1-Click Reject */}
-                            {app.status !== "Not Selected" && (
-                              <button 
-                                onClick={(e) => handleQuickReject(e, app)}
-                                className="btn-reject"
-                                title="Reject candidate application"
+                            {/* Request More Information */}
+                            {app.status !== "Rejected" && (
+                              <button
+                                type="button"
+                                onClick={() => openConfirmDecisionModal(app, "More Information Required")}
+                                className="btn btn-outline btn-xs text-purple-700"
+                                title="Request additional information from candidate"
                               >
-                                <X size={13} />
-                                <span>Reject</span>
+                                <HelpCircle size={12} />
+                                <span>Info</span>
                               </button>
                             )}
 
-                            {/* Review & Resume View */}
-                            <button 
-                              onClick={() => handleOpenReview(app, "overview")}
-                              className="btn-details"
-                              title="Open Full Review & Resume"
-                            >
-                              <Eye size={13} />
-                              <span>Details</span>
-                            </button>
+                            {/* Reject */}
+                            {app.status !== "Rejected" && (
+                              <button
+                                type="button"
+                                onClick={() => openConfirmDecisionModal(app, "Reject")}
+                                className="btn btn-outline btn-xs text-danger"
+                                title="Reject application"
+                              >
+                                <X size={12} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -537,301 +660,58 @@ export default function ApplicationManagement({ setActiveTab }) {
         </div>
       )}
 
-      {/* VIEW 2: KANBAN PIPELINE BOARD */}
-      {viewMode === "kanban" && (
-        <div className="mt-4">
-          <div className="kanban-board-container">
-            {/* Column 1: Submitted & Under Review */}
-            <div className="kanban-column">
-              <div className="kanban-column-header">
-                <span className="kanban-column-title">
-                  <Clock size={14} className="text-blue-500" />
-                  <span>Needs Review</span>
-                </span>
-                <span className="kanban-count-pill">
-                  {filteredApplications.filter(a => a.status === "Submitted" || a.status === "Under Review").length}
-                </span>
-              </div>
-              <div className="kanban-column-body">
-                {filteredApplications
-                  .filter(a => a.status === "Submitted" || a.status === "Under Review")
-                  .map(app => {
-                    const match = getAppMatchDetails(app);
-                    return (
-                      <div key={app.id} className="kanban-card">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="kanban-card-title">{app.candidateName}</div>
-                            <div className="kanban-card-job">{app.jobTitle}</div>
-                          </div>
-                          {match && (
-                            <span className={`badge ${match.totalScore >= 80 ? "badge-success" : "badge-subtle"} text-xs font-bold`}>
-                              {match.totalScore}%
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-xs text-muted mb-2">
-                          {app.experienceYears} Yrs Exp • {new Date(app.submittedAt).toLocaleDateString()}
-                        </div>
-                        <div className="flex flex-wrap gap-1 mb-3">
-                          {(app.skills || []).slice(0, 3).map((s, idx) => (
-                            <span key={idx} className="badge badge-subtle text-xs">{s}</span>
-                          ))}
-                        </div>
-                        <div className="flex items-center justify-between border-t border-slate-100 pt-2">
-                          <button 
-                            onClick={() => handleOpenReview(app, "resume")}
-                            className="btn-text-action text-primary text-xs"
-                          >
-                            <FileText size={12} />
-                            <span>Resume</span>
-                          </button>
-                          <div className="flex gap-1">
-                            <button 
-                              onClick={(e) => handleQuickAccept(e, app)}
-                              className="btn-quick-accept"
-                              title="Accept & Shortlist"
-                            >
-                              <Check size={12} />
-                              <span>Accept</span>
-                            </button>
-                            <button 
-                              onClick={(e) => handleQuickReject(e, app)}
-                              className="btn-quick-reject"
-                              title="Reject"
-                            >
-                              <X size={12} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-
-            {/* Column 2: Shortlisted */}
-            <div className="kanban-column">
-              <div className="kanban-column-header">
-                <span className="kanban-column-title">
-                  <CheckCircle2 size={14} className="text-emerald-500" />
-                  <span>Shortlisted</span>
-                </span>
-                <span className="kanban-count-pill">
-                  {filteredApplications.filter(a => a.status === "Shortlisted").length}
-                </span>
-              </div>
-              <div className="kanban-column-body">
-                {filteredApplications
-                  .filter(a => a.status === "Shortlisted")
-                  .map(app => {
-                    const match = getAppMatchDetails(app);
-                    return (
-                      <div key={app.id} className="kanban-card border-l-4 border-l-emerald-500">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="kanban-card-title">{app.candidateName}</div>
-                            <div className="kanban-card-job">{app.jobTitle}</div>
-                          </div>
-                          {match && (
-                            <span className="badge badge-success text-xs font-bold">{match.totalScore}%</span>
-                          )}
-                        </div>
-                        <div className="text-xs text-emerald-700 bg-emerald-50 p-1 rounded font-medium my-1.5">
-                          ✓ Cleared initial rubric criteria
-                        </div>
-                        <div className="flex items-center justify-between border-t border-slate-100 pt-2 mt-2">
-                          <button 
-                            onClick={() => handleOpenReview(app, "rubric")}
-                            className="btn-text-action text-primary text-xs"
-                          >
-                            <Sparkles size={12} />
-                            <span>AI Rubric</span>
-                          </button>
-                          <button 
-                            onClick={() => handleSaveStatus("Interview", "Advanced to interview stage from pipeline.")}
-                            className="btn btn-purple btn-xs"
-                            title="Advance to Interview"
-                            style={{ padding: "0.2rem 0.5rem", fontSize: "0.72rem" }}
-                          >
-                            <span>Interview →</span>
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-
-            {/* Column 3: Interview */}
-            <div className="kanban-column">
-              <div className="kanban-column-header">
-                <span className="kanban-column-title">
-                  <Users size={14} className="text-purple-500" />
-                  <span>In Interview</span>
-                </span>
-                <span className="kanban-count-pill">
-                  {filteredApplications.filter(a => a.status === "Interview").length}
-                </span>
-              </div>
-              <div className="kanban-column-body">
-                {filteredApplications
-                  .filter(a => a.status === "Interview")
-                  .map(app => (
-                    <div key={app.id} className="kanban-card border-l-4 border-l-purple-500">
-                      <div className="kanban-card-title">{app.candidateName}</div>
-                      <div className="kanban-card-job">{app.jobTitle}</div>
-                      <div className="text-xs text-muted mb-2">Technical Panel Interview in Progress</div>
-                      <div className="flex items-center justify-between border-t border-slate-100 pt-2 mt-2">
-                        <button 
-                          onClick={() => handleOpenReview(app, "overview")}
-                          className="btn-text-action text-slate-700 text-xs"
-                        >
-                          <Eye size={12} />
-                          <span>Notes</span>
-                        </button>
-                        <button 
-                          onClick={(e) => handleQuickSelect(e, app)}
-                          className="btn btn-emerald btn-xs"
-                          title="Offer / Select"
-                          style={{ padding: "0.2rem 0.5rem", fontSize: "0.72rem" }}
-                        >
-                          <Award size={12} />
-                          <span>Select / Offer</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
-
-            {/* Column 4: Selected / Accepted */}
-            <div className="kanban-column">
-              <div className="kanban-column-header">
-                <span className="kanban-column-title">
-                  <Award size={14} className="text-emerald-600" />
-                  <span>Selected & Hired</span>
-                </span>
-                <span className="kanban-count-pill">
-                  {filteredApplications.filter(a => a.status === "Selected").length}
-                </span>
-              </div>
-              <div className="kanban-column-body">
-                {filteredApplications
-                  .filter(a => a.status === "Selected")
-                  .map(app => (
-                    <div key={app.id} className="kanban-card border-l-4 border-l-emerald-600 bg-emerald-50/20">
-                      <div className="kanban-card-title">{app.candidateName}</div>
-                      <div className="kanban-card-job">{app.jobTitle}</div>
-                      <div className="badge badge-emerald text-xs mt-1">✓ Candidate Selected</div>
-                      <div className="mt-3 pt-2 border-t border-slate-100 flex justify-between items-center">
-                        <button 
-                          onClick={() => handleDirectAssign(app)}
-                          className="btn btn-primary btn-xs"
-                          title="Lock candidate into requisition in DynamoDB"
-                          style={{ padding: "0.2rem 0.5rem", fontSize: "0.72rem" }}
-                        >
-                          <Lock size={11} />
-                          <span>Assign Exclusively</span>
-                        </button>
-                        <button 
-                          onClick={() => handleOpenReview(app, "overview")}
-                          className="btn-text-action text-xs"
-                        >
-                          Review
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
-
-            {/* Column 5: Not Selected */}
-            <div className="kanban-column">
-              <div className="kanban-column-header">
-                <span className="kanban-column-title">
-                  <X size={14} className="text-rose-500" />
-                  <span>Not Selected</span>
-                </span>
-                <span className="kanban-count-pill">
-                  {filteredApplications.filter(a => a.status === "Not Selected").length}
-                </span>
-              </div>
-              <div className="kanban-column-body">
-                {filteredApplications
-                  .filter(a => a.status === "Not Selected")
-                  .map(app => (
-                    <div key={app.id} className="kanban-card opacity-75">
-                      <div className="kanban-card-title text-slate-600">{app.candidateName}</div>
-                      <div className="text-xs text-muted mb-2">{app.jobTitle}</div>
-                      <button 
-                        onClick={() => handleSaveStatus("Under Review", "Re-opened for reconsideration.")}
-                        className="btn-text-action text-xs text-primary"
-                      >
-                        Re-evaluate
-                      </button>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* VIEW 3: CARDS GRID VIEW */}
+      {/* APPLICATIONS LIST VIEW: CARDS */}
       {viewMode === "cards" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredApplications.map(app => {
             const match = getAppMatchDetails(app);
             return (
-              <div key={app.id} className="card p-5 hover:shadow-md transition">
-                <div className="flex justify-between items-start mb-3">
+              <div key={app.id} className="card p-5 space-y-3">
+                <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-bold text-base text-slate-900">{app.candidateName}</h3>
+                    <h3 className="font-bold text-sm text-forest">{app.candidateName}</h3>
                     <div className="text-xs text-muted">{app.candidateEmail}</div>
+                    <span className="reference-pill text-[10px] mt-1 inline-block">{app.id}</span>
                   </div>
                   {match && (
-                    <div className="text-right">
-                      <span className={`badge ${match.totalScore >= 80 ? "badge-success" : match.totalScore >= 60 ? "badge-primary" : "badge-subtle"} font-bold text-xs`}>
-                        {match.totalScore}% Match
-                      </span>
-                    </div>
+                    <span className="badge badge-mint font-bold text-xs">
+                      {match.totalScore} / 100
+                    </span>
                   )}
                 </div>
 
-                <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 mb-3">
-                  <div className="text-xs font-semibold text-slate-800">{app.jobTitle}</div>
-                  <div className="text-xs text-muted">{app.jobId} • Applied {new Date(app.submittedAt).toLocaleDateString()}</div>
+                <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs">
+                  <div className="font-semibold text-slate-800">{app.jobTitle}</div>
+                  <div className="text-muted text-[11px] mt-0.5">Applied: {new Date(app.submittedAt).toLocaleDateString()}</div>
                 </div>
 
-                <div className="mb-3">
-                  <div className="text-xs font-semibold text-slate-700 mb-1">{app.experienceYears} Years Experience</div>
+                <div>
+                  <div className="text-xs font-semibold text-slate-700 mb-1">{app.experienceYears} Years Exp</div>
                   <div className="flex flex-wrap gap-1">
                     {(app.skills || []).map((s, idx) => (
-                      <span key={idx} className="badge badge-subtle text-xs">{s}</span>
+                      <span key={idx} className="badge badge-subtle text-[11px]">{s}</span>
                     ))}
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+                <div className="flex justify-between items-center pt-3 border-t border-slate-100">
                   <div>{getStatusBadge(app.status)}</div>
                   <div className="flex items-center gap-1.5">
-                    {app.status !== "Shortlisted" && app.status !== "Selected" && (
-                      <button 
-                        onClick={(e) => handleQuickAccept(e, app)}
-                        className="btn-quick-accept"
-                        title="Accept & Shortlist"
-                      >
-                        <Check size={12} />
-                        <span>Accept</span>
-                      </button>
-                    )}
-                    <button 
+                    <button
+                      type="button"
                       onClick={() => handleOpenReview(app, "overview")}
                       className="btn btn-outline btn-xs"
                     >
                       <Eye size={12} />
-                      <span>Details</span>
+                      <span>Review</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openConfirmDecisionModal(app, "Approve")}
+                      className="btn btn-primary btn-xs"
+                      style={{ background: "var(--forest-green)" }}
+                    >
+                      Approve
                     </button>
                   </div>
                 </div>
@@ -841,55 +721,129 @@ export default function ApplicationManagement({ setActiveTab }) {
         </div>
       )}
 
-      {/* FULL REVIEW & RESUME VIEWER MODAL */}
+      {/* CONFIRMATION DECISION DIALOG MODAL (Reject, Request More Info, Approve) */}
+      {confirmModal.isOpen && confirmModal.app && (
+        <div className="modal-backdrop">
+          <div className="modal-card" style={{ maxWidth: "540px", width: "95%" }}>
+            <div className="modal-header">
+              <div>
+                <h3 className="modal-title text-base font-bold text-forest">{confirmModal.title}</h3>
+                <p className="text-xs text-muted mt-0.5">{confirmModal.subtitle}</p>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setConfirmModal({ isOpen: false, app: null, action: "", note: "", title: "", subtitle: "" })}
+                className="btn-close-modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body p-4 space-y-3">
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs">
+                <div>Candidate: <strong>{confirmModal.app.candidateName}</strong> ({confirmModal.app.candidateEmail})</div>
+                <div>Position: <strong>{confirmModal.app.jobTitle}</strong></div>
+                <div>Action: <strong className="text-forest">{confirmModal.action}</strong></div>
+              </div>
+
+              <div className="form-group">
+                <label className="text-xs font-semibold text-slate-700">
+                  {confirmModal.action === "Rejected" ? "Rejection Reason / Internal Notes *" : "Decision Note & Feedback"}
+                </label>
+                <textarea 
+                  rows={3}
+                  required={confirmModal.action === "Rejected"}
+                  value={confirmModal.note}
+                  onChange={(e) => setConfirmModal({ ...confirmModal, note: e.target.value })}
+                  placeholder={
+                    confirmModal.action === "Rejected" 
+                      ? "e.g. Insufficient production experience with Kubernetes and AWS Lambda." 
+                      : "Add reviewer notes or candidate instructions..."
+                  }
+                  className="w-full p-2.5 border rounded-lg text-xs mt-1 focus:outline-none"
+                  style={{ borderColor: "var(--border-color)" }}
+                />
+              </div>
+            </div>
+
+            <div className="modal-footer flex justify-between items-center p-3">
+              <button 
+                type="button"
+                onClick={() => setConfirmModal({ isOpen: false, app: null, action: "", note: "", title: "", subtitle: "" })}
+                className="btn btn-outline"
+              >
+                Cancel
+              </button>
+
+              <button 
+                type="button"
+                onClick={executeConfirmDecision}
+                className="btn btn-primary"
+                style={{ 
+                  background: confirmModal.action === "Rejected" ? "var(--danger)" : "var(--forest-green)",
+                  color: "#FFFFFF"
+                }}
+              >
+                <span>Confirm {confirmModal.action}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FULL APPLICANT REVIEW & RESUME PREVIEW MODAL */}
       {activeModalApp && (
         <div className="modal-backdrop">
-          <div className="modal-card" style={{ maxWidth: "880px", width: "95%" }}>
-            {/* Modal Header */}
+          <div className="modal-card" style={{ maxWidth: "860px", width: "95%" }}>
             <div className="modal-header">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="reference-pill">{activeModalApp.id}</span>
                   {getStatusBadge(activeModalApp.status)}
                 </div>
-                <h2 className="modal-title font-bold text-xl">Applicant: {activeModalApp.candidateName}</h2>
+                <h2 className="modal-title font-bold text-xl text-forest">
+                  {activeModalApp.candidateName}
+                </h2>
                 <div className="text-xs text-muted mt-0.5">
                   Applied for <strong>{activeModalApp.jobTitle}</strong> ({activeModalApp.jobId})
                 </div>
               </div>
-              <button onClick={() => setActiveModalApp(null)} className="btn-close-modal">✕</button>
+              <button type="button" onClick={() => setActiveModalApp(null)} className="btn-close-modal">✕</button>
             </div>
 
-            {/* Modal Navigation Tabs */}
-            <div className="portal-subnav" style={{ padding: "0 1.5rem", borderBottom: "1px solid #e2e8f0" }}>
+            {/* Modal Subtabs */}
+            <div className="portal-subnav" style={{ padding: "0 1.5rem", borderBottom: "1px solid var(--border-color)" }}>
               <button 
+                type="button"
                 onClick={() => setActiveTabModal("overview")}
                 className={`portal-subnav-btn ${activeTabModal === "overview" ? "active" : ""}`}
               >
                 <Eye size={14} />
-                <span>Profile & Decisions</span>
+                <span>Overview & Actions</span>
               </button>
               <button 
+                type="button"
                 onClick={() => setActiveTabModal("resume")}
                 className={`portal-subnav-btn ${activeTabModal === "resume" ? "active" : ""}`}
               >
                 <FileText size={14} />
-                <span>Resume Document Preview</span>
+                <span>Private Resume Document</span>
               </button>
               <button 
+                type="button"
                 onClick={() => setActiveTabModal("rubric")}
                 className={`portal-subnav-btn ${activeTabModal === "rubric" ? "active" : ""}`}
               >
                 <Sparkles size={14} />
-                <span>AI Rubric Breakdown (100 pts)</span>
+                <span>AI Rubric Match (100 pts)</span>
               </button>
             </div>
 
-            <div className="modal-body" style={{ maxHeight: "68vh", overflowY: "auto", padding: "1.5rem" }}>
-              {/* TAB 1: OVERVIEW & DECISION */}
+            <div className="modal-body p-6" style={{ maxHeight: "65vh", overflowY: "auto" }}>
+              {/* TAB 1: OVERVIEW & DECISION ACTIONS */}
               {activeTabModal === "overview" && (
-                <div>
-                  <div className="job-details-meta-grid mb-4">
+                <div className="space-y-4">
+                  <div className="job-details-meta-grid">
                     <div className="meta-box">
                       <span className="meta-label">Candidate Name</span>
                       <span className="meta-val font-semibold">{activeModalApp.candidateName}</span>
@@ -908,51 +862,58 @@ export default function ApplicationManagement({ setActiveTab }) {
                     </div>
                   </div>
 
-                  {/* Quick Decision Hub */}
-                  <div className="card p-4 bg-slate-50 border-slate-200 mb-4">
-                    <h4 className="text-xs uppercase tracking-wider font-bold text-slate-700 mb-2">
-                      Instant Hiring Decision Actions
+                  {/* Actions Hub */}
+                  <div className="card p-4 bg-slate-50 border-slate-200">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-forest mb-2">
+                      Reviewer Decision Controls
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       <button 
-                        onClick={() => handleSaveStatus("Shortlisted", "Candidate shortlisted after detailed resume review.")}
-                        className="btn btn-emerald"
+                        type="button"
+                        onClick={() => handleSaveStatus("Under Review", "Application moved into detailed technical review.")}
+                        className="btn btn-outline"
                       >
-                        <CheckCircle2 size={16} />
-                        <span>Accept & Shortlist</span>
+                        <Clock size={15} />
+                        <span>Mark Under Review</span>
                       </button>
 
                       <button 
-                        onClick={() => handleSaveStatus("Interview", "Advanced to technical interview panel.")}
-                        className="btn btn-purple"
+                        type="button"
+                        onClick={() => handleSaveStatus("Shortlisted", "Candidate cleared technical benchmarks.")}
+                        className="btn btn-outline text-emerald-800"
+                        style={{ background: "var(--pale-mint)", borderColor: "var(--mint-green)" }}
                       >
-                        <Users size={16} />
-                        <span>Advance to Interview</span>
+                        <Check size={15} />
+                        <span>Shortlist</span>
                       </button>
 
                       <button 
-                        onClick={() => handleSaveStatus("Selected", "Hiring offer generated for candidate.")}
+                        type="button"
+                        onClick={() => openConfirmDecisionModal(activeModalApp, "Approve")}
                         className="btn btn-primary"
+                        style={{ background: "var(--forest-green)", color: "#FFFFFF" }}
                       >
-                        <Award size={16} />
-                        <span>Approve & Make Offer</span>
+                        <Award size={15} />
+                        <span>Approve for Next Stage</span>
                       </button>
 
                       <button 
+                        type="button"
                         onClick={() => handleDirectAssign(activeModalApp)}
                         className="btn btn-outline text-amber-800 border-amber-300 bg-amber-50"
-                        title="Directly lock into DynamoDB candidate ledger"
+                        title="Lock candidate into DynamoDB exclusivity ledger"
                       >
                         <Lock size={15} />
                         <span>Assign Exclusively</span>
                       </button>
 
                       <button 
-                        onClick={() => handleSaveStatus("Not Selected", "Profile does not meet target requirements.")}
-                        className="btn btn-outline text-rose-700 border-rose-300 hover:bg-rose-50"
+                        type="button"
+                        onClick={() => openConfirmDecisionModal(activeModalApp, "Reject")}
+                        className="btn btn-outline text-danger border-rose-300 hover:bg-rose-50"
                       >
                         <X size={15} />
-                        <span>Reject Candidate</span>
+                        <span>Reject Application</span>
                       </button>
                     </div>
                   </div>
@@ -960,53 +921,52 @@ export default function ApplicationManagement({ setActiveTab }) {
                   {/* Manual Stage & Notes Form */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="form-group">
-                      <label>Application Workflow Stage *</label>
+                      <label className="text-xs font-semibold text-slate-700">Application Stage *</label>
                       <select 
                         value={editingStatus} 
                         onChange={(e) => setEditingStatus(e.target.value)}
-                        className="filter-select w-full"
+                        className="admin-select w-full mt-1"
                       >
                         <option value="Submitted">Submitted (Initial Ingestion)</option>
-                        <option value="Under Review">Under Review (Recruiter Screening)</option>
+                        <option value="Under Review">Under Review (Technical Review)</option>
                         <option value="Shortlisted">Shortlisted (Candidate Cleared Rubric)</option>
-                        <option value="Interview">Interview (Panel Scheduled)</option>
-                        <option value="Selected">Selected (Offer Stage)</option>
-                        <option value="Not Selected">Not Selected (Does Not Meet Benchmark)</option>
-                        <option value="Withdrawn">Withdrawn (Candidate Opted Out)</option>
+                        <option value="Approved">Approved (Progress to Interview Stage)</option>
+                        <option value="More Information Required">More Information Required</option>
+                        <option value="Rejected">Rejected</option>
                       </select>
                     </div>
 
                     <div className="form-group">
-                      <label>Internal Hiring Notes</label>
+                      <label className="text-xs font-semibold text-slate-700">Reviewer Internal Notes</label>
                       <input 
                         type="text"
-                        className="input-text w-full"
-                        placeholder="e.g. Strong cloud architecture background."
                         value={editingNote}
                         onChange={(e) => setEditingNote(e.target.value)}
+                        placeholder="e.g. Strong cloud architecture background."
+                        className="input-text w-full mt-1"
                       />
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* TAB 2: RESUME DOCUMENT PREVIEW */}
+              {/* TAB 2: RESUME DOCUMENT PREVIEW (Private S3 Mock Mechanism) */}
               {activeTabModal === "resume" && (
                 <div>
                   <div className="flex justify-between items-center mb-3">
                     <div className="text-xs text-muted">
-                      Source File: <strong>{activeModalApp.resumeFilename || "Candidate_Resume.pdf"}</strong>
+                      Private Document: <strong>{activeModalApp.resumeFilename || "Candidate_Resume.pdf"}</strong>
                     </div>
                     <button 
-                      onClick={() => showNotification("Resume document downloaded.")}
+                      type="button"
+                      onClick={() => showNotification("Secure short-lived presigned download generated.")}
                       className="btn btn-outline btn-xs"
                     >
                       <Download size={13} />
-                      <span>Download PDF</span>
+                      <span>Download Private PDF</span>
                     </button>
                   </div>
 
-                  {/* Clean Executive Resume Document Styling */}
                   <div className="resume-paper-view">
                     <div className="resume-paper-header">
                       <h1 className="resume-paper-name">{activeModalApp.candidateName}</h1>
@@ -1015,125 +975,73 @@ export default function ApplicationManagement({ setActiveTab }) {
                         <span>📧 {activeModalApp.candidateEmail}</span>
                         <span>📱 {activeModalApp.phone || "+1 (555) 019-2831"}</span>
                         <span>📍 San Francisco, CA / Remote</span>
-                        <span>🔗 linkedin.com/in/{activeModalApp.candidateName.toLowerCase().replace(/[^a-z0-9]/g, "")}</span>
                       </div>
                     </div>
 
-                    {/* Executive Bio */}
                     <div>
                       <div className="resume-section-title">Executive Summary</div>
                       <p className="text-sm text-slate-700 leading-relaxed">
-                        Results-driven technologist with {activeModalApp.experienceYears} years of experience designing, architecting, and deploying resilient cloud solutions. Demonstrated expertise across distributed backend services, serverless computing, and enterprise application pipelines. Proven track record collaborating with cross-functional product and engineering teams to deliver high-availability software.
+                        Results-driven cloud engineer with {activeModalApp.experienceYears} years of experience designing, architecting, and deploying resilient serverless microservices on AWS. Strong expertise with DynamoDB single-table designs, Python Lambda handlers, and REST API services.
                       </p>
                     </div>
 
-                    {/* Skills Competencies */}
                     <div>
-                      <div className="resume-section-title">Core Competencies & Technical Skills</div>
+                      <div className="resume-section-title">Verified Core Competencies</div>
                       <div className="flex flex-wrap gap-1.5">
                         {(activeModalApp.skills || []).map((skill, idx) => (
-                          <span key={idx} className="badge badge-primary text-xs" style={{ padding: "0.25rem 0.6rem" }}>
+                          <span key={idx} className="badge badge-mint text-xs">
                             {skill}
                           </span>
                         ))}
-                      </div>
-                    </div>
-
-                    {/* Work Experience */}
-                    <div>
-                      <div className="resume-section-title">Professional Experience</div>
-                      <div className="mb-3">
-                        <div className="flex justify-between items-baseline">
-                          <h4 className="font-bold text-sm text-slate-900">Lead Cloud Systems Engineer — Apex Enterprise Solutions</h4>
-                          <span className="text-xs text-muted">2021 – Present</span>
-                        </div>
-                        <ul className="list-disc pl-5 text-xs text-slate-700 mt-1 space-y-1">
-                          <li>Architected serverless ingestion pipelines on AWS supporting over 2M daily API transactions.</li>
-                          <li>Spearheaded containerization strategy utilizing Docker and Kubernetes, decreasing CI/CD deployment times by 45%.</li>
-                          <li>Collaborated on role-based authorization layers and single-table DynamoDB data stores.</li>
-                        </ul>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between items-baseline">
-                          <h4 className="font-bold text-sm text-slate-900">Senior Backend Developer — CloudHire Innovations</h4>
-                          <span className="text-xs text-muted">2018 – 2021</span>
-                        </div>
-                        <ul className="list-disc pl-5 text-xs text-slate-700 mt-1 space-y-1">
-                          <li>Developed RESTful APIs in Python and Node.js with comprehensive unit test coverage exceeding 90%.</li>
-                          <li>Integrated cloud storage and event-driven architectures with Amazon S3 and SQS.</li>
-                        </ul>
-                      </div>
-                    </div>
-
-                    {/* Education */}
-                    <div>
-                      <div className="resume-section-title">Education & Certifications</div>
-                      <div className="text-xs text-slate-800 font-semibold">
-                        Bachelor of Science in Computer Science — University of California
-                      </div>
-                      <div className="text-xs text-muted mt-0.5">
-                        AWS Certified Solutions Architect – Professional • Certified Kubernetes Administrator (CKA)
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* TAB 3: AI RUBRIC BREAKDOWN */}
+              {/* TAB 3: AI RUBRIC MATCH (100 PTS DETERMINISTIC ENGINE) */}
               {activeTabModal === "rubric" && (
                 <div>
                   {(() => {
                     const match = getAppMatchDetails(activeModalApp);
-                    if (!match) {
-                      return <div className="text-center text-muted p-4">No matching rubric data found for this job.</div>;
-                    }
+                    if (!match) return <div className="text-muted p-4">No rubric match data available.</div>;
 
                     return (
-                      <div>
-                        {/* Hero Score Box */}
-                        <div className="rubric-score-display mb-4">
+                      <div className="space-y-4">
+                        <div className="rubric-score-display p-4 rounded-xl flex justify-between items-center"
+                             style={{ background: "var(--forest-green)", color: "#FFFFFF" }}>
                           <div>
-                            <span className="text-xs uppercase tracking-wider text-blue-200 font-bold">
-                              Deterministic Rubric Score
+                            <span className="text-xs uppercase tracking-wider text-emerald-200 font-bold">
+                              Transparent 100-Point Rubric
                             </span>
                             <div className="text-3xl font-extrabold text-white mt-1">
-                              {match.totalScore} <span className="text-lg font-normal text-slate-300">/ 100</span>
+                              {match.totalScore} <span className="text-base font-normal text-emerald-200">/ 100</span>
                             </div>
                             <div className="text-xs text-emerald-300 font-semibold mt-1">
-                              {match.totalScore >= 80 ? "★ Top Tier Recommendation" : match.totalScore >= 60 ? "✓ Qualified Candidate" : "⚠ Below Benchmark"}
+                              {match.totalScore >= 80 ? "★ Top Recommendation" : "✓ Qualified Candidate"}
                             </div>
                           </div>
-
                           <div className="text-right">
-                            <span className="badge badge-emerald text-xs">AWS Bedrock Validated</span>
-                            <div className="text-xs text-slate-300 mt-1">
-                              Target Requisition: <strong>{activeModalApp.jobTitle}</strong>
-                            </div>
+                            <span className="badge badge-mint text-xs">Deterministic Scorer</span>
+                            <div className="text-xs text-emerald-100 mt-1">{activeModalApp.jobTitle}</div>
                           </div>
                         </div>
 
-                        {/* Breakdown Grid */}
-                        <div className="rubric-pill-breakdown mb-4">
+                        <div className="rubric-pill-breakdown">
                           <div className="rubric-criterion-box">
-                            <div className="flex justify-between items-center text-xs font-bold text-slate-800">
+                            <div className="flex justify-between items-center text-xs font-bold text-forest">
                               <span>1. Mandatory Skills Match</span>
-                              <span className="text-primary">{match.scoreRequired} / 40 pts</span>
+                              <span>{match.scoreRequired} / 40 pts</span>
                             </div>
                             <div className="mt-2 text-xs text-slate-600">
                               Matched: <strong className="text-emerald-700">{match.matchedRequired?.join(", ") || "None"}</strong>
                             </div>
-                            {match.missingRequired?.length > 0 && (
-                              <div className="mt-1 text-xs text-amber-700">
-                                Missing: {match.missingRequired.join(", ")}
-                              </div>
-                            )}
                           </div>
 
                           <div className="rubric-criterion-box">
-                            <div className="flex justify-between items-center text-xs font-bold text-slate-800">
+                            <div className="flex justify-between items-center text-xs font-bold text-forest">
                               <span>2. Relevant Experience</span>
-                              <span className="text-primary">{match.scoreExp} / 25 pts</span>
+                              <span>{match.scoreExp} / 25 pts</span>
                             </div>
                             <div className="mt-2 text-xs text-slate-600">
                               Candidate has <strong>{activeModalApp.experienceYears} years</strong> of verified domain experience.
@@ -1141,45 +1049,24 @@ export default function ApplicationManagement({ setActiveTab }) {
                           </div>
 
                           <div className="rubric-criterion-box">
-                            <div className="flex justify-between items-center text-xs font-bold text-slate-800">
+                            <div className="flex justify-between items-center text-xs font-bold text-forest">
                               <span>3. Production Projects</span>
-                              <span className="text-primary">{match.scoreProjects} / 20 pts</span>
+                              <span>{match.scoreProjects} / 20 pts</span>
                             </div>
                             <div className="mt-2 text-xs text-slate-600">
-                              Verified production project delivery in cloud environments.
+                              Demonstrated production cloud service architecture.
                             </div>
                           </div>
 
                           <div className="rubric-criterion-box">
-                            <div className="flex justify-between items-center text-xs font-bold text-slate-800">
-                              <span>4. Preferred Skills & Certifications</span>
-                              <span className="text-primary">{match.scorePreferred + match.scoreEdu} / 15 pts</span>
+                            <div className="flex justify-between items-center text-xs font-bold text-forest">
+                              <span>4. Preferred Stack & Certifications</span>
+                              <span>{match.scorePreferred + match.scoreEdu} / 15 pts</span>
                             </div>
                             <div className="mt-2 text-xs text-slate-600">
-                              Preferred Stack: <strong>{match.matchedPreferred?.join(", ") || "Demonstrated"}</strong>
+                              Bonus stack: <strong>{match.matchedPreferred?.join(", ") || "Demonstrated"}</strong>
                             </div>
                           </div>
-                        </div>
-
-                        {/* AI Strengths & Risks */}
-                        <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200">
-                          <h4 className="text-xs uppercase tracking-wider font-bold text-slate-700 mb-2">
-                            AI Reasoning & Candidate Evidence
-                          </h4>
-                          <ul className="space-y-1.5 text-xs text-slate-700">
-                            {(match.strengths || []).map((s, idx) => (
-                              <li key={idx} className="flex items-start gap-1.5">
-                                <span className="text-emerald-600 font-bold">✓</span>
-                                <span>{s}</span>
-                              </li>
-                            ))}
-                            {(match.concerns || []).map((c, idx) => (
-                              <li key={idx} className="flex items-start gap-1.5 text-amber-800">
-                                <span className="font-bold">⚠</span>
-                                <span>{c}</span>
-                              </li>
-                            ))}
-                          </ul>
                         </div>
                       </div>
                     );
@@ -1188,35 +1075,19 @@ export default function ApplicationManagement({ setActiveTab }) {
               )}
             </div>
 
-            {/* Modal Footer */}
-            <div className="modal-footer flex justify-between items-center">
-              <button onClick={() => setActiveModalApp(null)} className="btn btn-outline">
+            <div className="modal-footer flex justify-between items-center p-4">
+              <button type="button" onClick={() => setActiveModalApp(null)} className="btn btn-outline">
                 Close
               </button>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => handleSaveStatus("Approved", "Application and resume approved by Administrator. Our team will contact you shortly to schedule your interview.")}
-                  className="btn btn-success flex items-center gap-1.5 font-semibold"
-                  style={{ background: '#16a34a', color: 'white', border: 'none' }}
-                >
-                  <CheckCircle2 size={16} />
-                  <span>Approve Application</span>
-                </button>
-                <button 
-                  onClick={() => handleSaveStatus("Not Selected", "Application not selected for this requisition.")}
-                  className="btn btn-outline flex items-center gap-1.5 font-semibold"
-                  style={{ color: '#dc2626', borderColor: '#fca5a5' }}
-                >
-                  <X size={16} />
-                  <span>Reject Application</span>
-                </button>
-                <button 
-                  onClick={() => handleSaveStatus()}
-                  className="btn btn-primary"
-                >
-                  <span>Save Note</span>
-                </button>
-              </div>
+              <button 
+                type="button" 
+                onClick={() => handleSaveStatus()}
+                className="btn btn-primary"
+                style={{ background: "var(--forest-green)", color: "#FFFFFF" }}
+              >
+                <CheckCircle2 size={16} />
+                <span>Save Decision Updates</span>
+              </button>
             </div>
           </div>
         </div>
