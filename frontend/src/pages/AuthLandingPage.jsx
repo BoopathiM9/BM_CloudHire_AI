@@ -138,9 +138,9 @@ export default function AuthLandingPage({ onLoginSuccess }) {
         {/* Brand Header */}
         <div className="login-brand-header">
           <BrandLogo size="default" className="brand-logo-dark" />
-          <h1 className="login-title">Sign In to BM CloudHire</h1>
+          <h1 className="login-title">Welcome back</h1>
           <p className="login-subtitle">
-            Enterprise Talent Acquisition & Career Portal
+            Please enter your details to sign in
           </p>
         </div>
 
@@ -151,8 +151,8 @@ export default function AuthLandingPage({ onLoginSuccess }) {
             onClick={() => { setActivePortal("candidate"); setError(""); }}
             className={`login-tab-btn ${activePortal === "candidate" ? "active" : ""}`}
           >
-            <User size={16} />
-            <span>Candidate Portal</span>
+            <User size={15} />
+            <span>Candidate</span>
           </button>
 
           <button
@@ -160,8 +160,8 @@ export default function AuthLandingPage({ onLoginSuccess }) {
             onClick={() => { setActivePortal("admin"); setError(""); }}
             className={`login-tab-btn ${activePortal === "admin" ? "active admin-active" : ""}`}
           >
-            <ShieldCheck size={16} />
-            <span>Admin Portal</span>
+            <ShieldCheck size={15} />
+            <span>Administrator</span>
           </button>
         </div>
 
@@ -243,8 +243,7 @@ export default function AuthLandingPage({ onLoginSuccess }) {
                   disabled={loading}
                   className="login-submit-btn"
                 >
-                  <User size={16} />
-                  <span>{loading ? "Signing in..." : "Sign In to Candidate Portal"}</span>
+                  <span>{loading ? "Signing in..." : "Sign in"}</span>
                 </button>
 
                 <div className="login-switch-prompt">
@@ -347,8 +346,7 @@ export default function AuthLandingPage({ onLoginSuccess }) {
                   disabled={loading}
                   className="login-submit-btn"
                 >
-                  <CheckCircle2 size={16} />
-                  <span>{loading ? "Creating Account..." : "Create Account & Continue"}</span>
+                  <span>{loading ? "Creating account..." : "Create account"}</span>
                 </button>
 
                 <div className="login-switch-prompt">
@@ -417,20 +415,23 @@ export default function AuthLandingPage({ onLoginSuccess }) {
               disabled={loading}
               className="login-submit-btn admin-btn"
             >
-              <ShieldCheck size={16} />
-              <span>{loading ? "Authenticating..." : "Sign In to Admin Workspace"}</span>
+              <span>{loading ? "Signing in..." : "Sign in as Admin"}</span>
             </button>
           </form>
         )}
 
         {/* Card Footer */}
         <div className="login-card-footer">
-          <span className="secure-tag">
-            <Lock size={12} />
-            <span>Enterprise 256-bit Secure Gateway</span>
-          </span>
-          <span>&copy; 2026 BM CloudHire</span>
+          <a href="#privacy" className="login-footer-link" onClick={(e) => e.preventDefault()}>Privacy</a>
+          <span className="login-footer-dot">•</span>
+          <a href="#terms" className="login-footer-link" onClick={(e) => e.preventDefault()}>Terms</a>
+          <span className="login-footer-dot">•</span>
+          <a href="#help" className="login-footer-link" onClick={(e) => e.preventDefault()}>Help</a>
         </div>
+      </div>
+
+      <div className="login-page-subfooter">
+        &copy; {new Date().getFullYear()} BM CloudHire. All rights reserved.
       </div>
     </div>
   );

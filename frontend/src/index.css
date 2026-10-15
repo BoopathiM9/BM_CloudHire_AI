@@ -4191,19 +4191,38 @@ body {
 /* Card Bottom Footer */
 .login-card-footer {
   margin-top: 1.75rem;
-  padding-top: 1rem;
+  padding-top: 1.25rem;
   border-top: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  font-size: 0.75rem;
+  justify-content: center;
+  gap: 1rem;
+  font-size: 0.78rem;
   color: #94a3b8;
 }
 
-.login-card-footer .secure-tag {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+.login-footer-link {
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.login-footer-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.login-footer-dot {
+  color: #cbd5e1;
+  font-size: 0.7rem;
+}
+
+.login-page-subfooter {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: #94a3b8;
 }
 
 @keyframes fadeIn {
