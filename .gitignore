@@ -41,3 +41,6 @@ yarn-error.log*
 Thumbs.db
 *.zip
 backend/scripts/*.zip
+temp_doc.html
+e2e_screenshots/
+live_test_results/

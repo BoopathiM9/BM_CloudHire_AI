@@ -10,7 +10,8 @@ import os
 import re
 
 REGION = os.environ.get("AWS_REGION", "us-east-1")
-DEFAULT_MODEL = os.environ.get("BEDROCK_MODEL", "amazon.nova-micro-v1:0")
+# AWS Bedrock Free Tier & Basic Entry Models: Amazon Titan Text Lite / Nova Micro
+DEFAULT_MODEL = os.environ.get("BEDROCK_MODEL", "amazon.titan-text-lite-v1")
 
 bedrock_runtime = boto3.client("bedrock-runtime", region_name=REGION)
 
@@ -64,20 +65,30 @@ Respond ONLY with a valid JSON object matching this exact schema:
 """
 
         try:
-            # Build Amazon Nova input payload
-            body = json.dumps({
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": [{"text": prompt}]
+            # Build payload supporting Amazon Titan Text Lite (Free Tier Basic) and Amazon Nova
+            if "titan" in self.model_id:
+                body = json.dumps({
+                    "inputText": prompt,
+                    "textGenerationConfig": {
+                        "maxTokenCount": 600,
+                        "temperature": 0.1,
+                        "topP": 0.9
                     }
-                ],
-                "inferenceConfig": {
-                    "max_new_tokens": 600,
-                    "temperature": 0.1,
-                    "top_p": 0.9
-                }
-            })
+                })
+            else:
+                body = json.dumps({
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [{"text": prompt}]
+                        }
+                    ],
+                    "inferenceConfig": {
+                        "max_new_tokens": 600,
+                        "temperature": 0.1,
+                        "top_p": 0.9
+                    }
+                })
 
             response = bedrock_runtime.invoke_model(
                 modelId=self.model_id,
@@ -85,9 +96,10 @@ Respond ONLY with a valid JSON object matching this exact schema:
             )
 
             response_body = json.loads(response["body"].read())
-            # Amazon Nova response parsing
             output_text = ""
-            if "output" in response_body and "message" in response_body["output"]:
+            if "results" in response_body and len(response_body["results"]) > 0:
+                output_text = response_body["results"][0].get("outputText", "")
+            elif "output" in response_body and "message" in response_body["output"]:
                 content_blocks = response_body["output"]["message"].get("content", [])
                 for block in content_blocks:
                     if "text" in block:
