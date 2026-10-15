@@ -13,7 +13,9 @@ import {
   User,
   Mail,
   Phone,
-  Briefcase
+  Briefcase,
+  GraduationCap,
+  Code
 } from "lucide-react";
 
 export default function CandidateApplyModal({ job, isOpen, onClose, onSuccess }) {
@@ -252,37 +254,49 @@ export default function CandidateApplyModal({ job, isOpen, onClose, onSuccess })
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Total Relevant Experience (Years)</label>
-                  <input 
-                    type="number" 
-                    min="0" 
-                    max="40"
-                    value={experienceYears}
-                    onChange={(e) => setExperienceYears(e.target.value)}
-                  />
+                  <label>Total Relevant Experience (Years) *</label>
+                  <div className="input-with-icon">
+                    <Briefcase size={16} className="input-icon" />
+                    <input 
+                      type="number" 
+                      min="0" 
+                      max="40"
+                      required
+                      placeholder="e.g. 3"
+                      value={experienceYears}
+                      onChange={(e) => setExperienceYears(e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 <div className="form-group">
                   <label>Highest Degree / Education</label>
-                  <input 
-                    type="text" 
-                    value={education}
-                    onChange={(e) => setEducation(e.target.value)}
-                  />
+                  <div className="input-with-icon">
+                    <GraduationCap size={16} className="input-icon" />
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Bachelor's in Computer Science"
+                      value={education}
+                      onChange={(e) => setEducation(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
 
               <div className="form-group">
                 <label>Key Technical Competencies (comma-separated)</label>
-                <input 
-                  type="text" 
-                  placeholder="Python, AWS Lambda, DynamoDB, React, Docker"
-                  value={skills}
-                  onChange={(e) => setSkills(e.target.value)}
-                />
+                <div className="input-with-icon">
+                  <Code size={16} className="input-icon" />
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Python, AWS Lambda, DynamoDB, React, Docker"
+                    value={skills}
+                    onChange={(e) => setSkills(e.target.value)}
+                  />
+                </div>
               </div>
 
-              <div className="modal-footer px-0 pb-0 mt-4">
+              <div className="modal-footer">
                 <button type="button" onClick={onClose} className="btn btn-outline">Cancel</button>
                 <button type="submit" className="btn btn-primary">
                   <span>Continue to Resume Upload</span>
@@ -338,7 +352,7 @@ export default function CandidateApplyModal({ job, isOpen, onClose, onSuccess })
                 </div>
               </div>
 
-              <div className="modal-footer px-0 pb-0 mt-4">
+              <div className="modal-footer">
                 <button type="button" onClick={() => setStep(1)} className="btn btn-outline">
                   <ArrowLeft size={16} />
                   <span>Back</span>
@@ -391,7 +405,7 @@ export default function CandidateApplyModal({ job, isOpen, onClose, onSuccess })
                 transparent 100-point rubric. You will receive an application reference ID to track progress.
               </p>
 
-              <div className="modal-footer px-0 pb-0 mt-4">
+              <div className="modal-footer">
                 <button type="button" onClick={() => setStep(2)} className="btn btn-outline">
                   <ArrowLeft size={16} />
                   <span>Back</span>
@@ -430,7 +444,7 @@ export default function CandidateApplyModal({ job, isOpen, onClose, onSuccess })
                 Once the administrator approves your resume, this status will transition to <strong>Request Approved</strong> and our recruitment team will reach out directly.
               </p>
 
-              <div className="modal-footer justify-center px-0 pb-0 mt-5">
+              <div className="modal-footer justify-center">
                 <button 
                   onClick={() => {
                     onClose();
