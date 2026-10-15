@@ -5,35 +5,25 @@ import {
   LayoutDashboard, 
   Briefcase, 
   FileText, 
-  Sliders, 
-  History, 
-  RotateCcw, 
   ChevronDown,
   Users,
   Search,
   FileCheck2,
-  Lock,
   LogOut,
-  Home,
-  User,
-  ArrowRight
+  Home
 } from "lucide-react";
 
-export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
+export default function Navbar({ activeTab, setActiveTab }) {
   const { 
     availableCandidates, 
     applications,
     currentUser, 
-    logoutUser, 
-    resetDemoData, 
-    switchDemoRole,
-    backendConnected 
+    logoutUser 
   } = useApp();
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const isRecruiter = currentUser?.role === "RECRUITER";
-  const isCandidate = currentUser?.role === "CANDIDATE";
 
   // Count pending applications awaiting admin review
   const pendingCount = applications.filter(a => a.status === "Pending Review" || a.status === "Submitted" || a.status === "Under Review").length;
@@ -95,7 +85,7 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
           })}
         </nav>
 
-        {/* Right Section: Auth & Profile */}
+        {/* Right Section: System Indicator & Profile */}
         <div className="nav-actions">
           {/* System Online Status Indicator */}
           <div 
@@ -106,27 +96,8 @@ export default function Navbar({ activeTab, setActiveTab, onOpenAuth }) {
             <span className="hidden-mobile">System Online</span>
           </div>
 
-          {/* Unauthenticated Visitor Options */}
-          {!currentUser ? (
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => onOpenAuth("candidate-login")}
-                className="btn btn-outline btn-sm hidden-mobile"
-              >
-                <span>Candidate Sign In</span>
-              </button>
-
-              <button 
-                onClick={() => onOpenAuth("recruiter-login")}
-                className="btn btn-primary btn-sm flex items-center gap-1.5"
-                title="Admin Sign In"
-              >
-                <Lock size={13} />
-                <span>Admin Login</span>
-              </button>
-            </div>
-          ) : (
-            /* Logged-In User Profile & Direct Sign Out */
+          {/* Logged-In User Profile & Direct Sign Out */}
+          {currentUser && (
             <div className="nav-user-cluster">
               <div className="profile-menu-container">
                 <button 

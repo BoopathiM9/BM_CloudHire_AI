@@ -7,10 +7,9 @@ import {
   Clock, 
   Filter, 
   ArrowRight, 
-  SlidersHorizontal,
-  CheckCircle,
-  FileCheck2,
-  AlertCircle
+  CheckCircle, 
+  FileCheck2, 
+  User 
 } from "lucide-react";
 
 export default function FindJobs({ onViewJobDetails, onApplyJob }) {

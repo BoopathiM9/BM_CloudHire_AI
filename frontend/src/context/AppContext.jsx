@@ -423,18 +423,6 @@ export function AppProvider({ children }) {
     logActivity(`${name} logged out.`, "info");
   };
 
-  const switchDemoRole = async (targetRole) => {
-    if (targetRole === "RECRUITER") {
-      const recruiter = users.find(u => u.role === "RECRUITER") || initialUsers[0];
-      setCurrentUser(recruiter);
-      logActivity(`Switched session to Recruiter: ${recruiter.name}`, "info");
-    } else {
-      const candidate = users.find(u => u.role === "CANDIDATE") || initialUsers[1];
-      setCurrentUser(candidate);
-      logActivity(`Switched session to Candidate: ${candidate.name}`, "info");
-    }
-  };
-
   // ---------------- APPLICATION SUBMISSION & MANAGEMENT ----------------
   const submitApplication = async ({ jobId, personalDetails, resumeFile, parsedData }) => {
     setIsLoading(true);
@@ -860,7 +848,6 @@ export function AppProvider({ children }) {
         loginUser,
         registerCandidate,
         logoutUser,
-        switchDemoRole,
         submitApplication,
         updateApplicationStatus,
         approveApplication,

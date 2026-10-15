@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useApp } from "../context/AppContext";
 import { 
   FileCheck2, 
@@ -6,19 +6,11 @@ import {
   Briefcase, 
   CheckCircle2, 
   XCircle, 
-  Search, 
-  User, 
-  Mail, 
-  ShieldCheck, 
-  ArrowRight, 
-  ExternalLink,
   Phone
 } from "lucide-react";
 
-export default function MyApplications({ setActiveTab, onOpenAuth }) {
-  const { currentUser, applications, candidateApplications, withdrawApplication } = useApp();
-  const [lookupQuery, setLookupQuery] = useState("");
-  const [hasSearched, setHasSearched] = useState(false);
+export default function MyApplications({ setActiveTab }) {
+  const { currentUser, candidateApplications, withdrawApplication } = useApp();
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -111,24 +103,6 @@ export default function MyApplications({ setActiveTab, onOpenAuth }) {
     }
   };
 
-  // Determine list of displayed applications
-  let displayedApps = [];
-  if (currentUser && currentUser.role === "CANDIDATE") {
-    displayedApps = candidateApplications;
-  } else if (lookupQuery.trim()) {
-    const q = lookupQuery.trim().toLowerCase();
-    displayedApps = applications.filter(a => 
-      a.candidateEmail?.toLowerCase() === q ||
-      a.id?.toLowerCase() === q ||
-      a.candidateName?.toLowerCase().includes(q)
-    );
-  }
-
-  const handleLookupSubmit = (e) => {
-    e.preventDefault();
-    setHasSearched(true);
-  };
-
   return (
     <div className="page-container candidate-apps-page">
       {/* Header */}
@@ -146,53 +120,19 @@ export default function MyApplications({ setActiveTab, onOpenAuth }) {
             <Briefcase size={16} />
             <span>Browse Open Positions</span>
           </button>
-          {!currentUser && (
-            <button onClick={() => onOpenAuth("candidate-login")} className="btn btn-primary">
-              <User size={16} />
-              <span>Candidate Sign In</span>
-            </button>
-          )}
         </div>
       </div>
 
-      {/* Guest Lookup Bar (if not logged in) */}
-      {!currentUser && (
-        <div className="card p-5 mt-4 border border-blue-200 bg-blue-50/50">
-          <div className="flex items-center gap-2 mb-2">
-            <Search size={18} className="text-primary" />
-            <h3 className="text-base font-bold text-slate-800">Quick Status Lookup</h3>
-          </div>
-          <p className="text-xs text-slate-600 mb-4">
-            Enter your email address or Application Reference ID (e.g., <code>APP-8203</code> or <code>arun.krishnan@example.com</code>) to see whether your application is <strong>Pending Review</strong>, <strong>Request Approved</strong>, or <strong>Not Selected</strong>.
-          </p>
-          <form onSubmit={handleLookupSubmit} className="flex gap-2 max-w-xl">
-            <input 
-              type="text"
-              required
-              placeholder="e.g. arun.krishnan@example.com or APP-8203"
-              value={lookupQuery}
-              onChange={(e) => { setLookupQuery(e.target.value); setHasSearched(false); }}
-              className="form-input flex-1"
-              style={{ background: 'white' }}
-            />
-            <button type="submit" className="btn btn-primary">
-              <Search size={15} />
-              <span>Track Status</span>
-            </button>
-          </form>
-        </div>
-      )}
-
       {/* Applications List */}
       <div className="mt-6">
-        {currentUser && candidateApplications.length === 0 ? (
+        {candidateApplications.length === 0 ? (
           <div className="empty-state-card">
             <div className="empty-state-icon-box">
               <FileCheck2 size={32} className="text-primary" />
             </div>
             <h3>No Submitted Applications Yet</h3>
             <p>
-              You haven't submitted any job applications under <strong>{currentUser.email}</strong>. Explore verified cloud engineering requisitions and apply directly with your resume.
+              You haven't submitted any job applications under <strong>{currentUser?.email}</strong>. Explore verified cloud engineering requisitions and apply directly with your resume.
             </p>
             <button 
               onClick={() => setActiveTab("find-jobs")} 
@@ -202,22 +142,9 @@ export default function MyApplications({ setActiveTab, onOpenAuth }) {
               <span>Browse Open Positions Now</span>
             </button>
           </div>
-        ) : !currentUser && hasSearched && displayedApps.length === 0 ? (
-          <div className="empty-state-card card p-8 text-center">
-            <XCircle size={44} className="text-amber-500 mx-auto mb-2" />
-            <h3>No Application Found</h3>
-            <p className="text-sm text-muted">
-              No application matched "<strong>{lookupQuery}</strong>". Please verify your email or application reference ID.
-            </p>
-          </div>
-        ) : !currentUser && !hasSearched && displayedApps.length === 0 ? (
-          <div className="card p-8 text-center text-muted">
-            <FileCheck2 size={40} className="mx-auto mb-2 text-primary opacity-60" />
-            <p className="text-sm">Use the search box above to track any application status instantly, or sign in to your candidate account.</p>
-          </div>
         ) : (
           <div className="my-applications-grid grid gap-4">
-            {displayedApps.map((app) => (
+            {candidateApplications.map((app) => (
               <div key={app.id} className="candidate-app-card card p-5 border border-slate-200 hover:shadow-md transition">
                 <div className="app-card-top flex justify-between items-start flex-wrap gap-2">
                   <div>

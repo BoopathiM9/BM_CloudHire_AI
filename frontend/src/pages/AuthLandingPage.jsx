@@ -9,9 +9,7 @@ import {
   AlertCircle, 
   Eye, 
   EyeOff,
-  ArrowRight,
-  CheckCircle2,
-  Briefcase
+  CheckCircle2
 } from "lucide-react";
 
 export default function AuthLandingPage({ onLoginSuccess }) {
