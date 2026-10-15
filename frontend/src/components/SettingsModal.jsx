@@ -42,7 +42,7 @@ export default function SettingsModal({ isOpen, onClose }) {
 
   return (
     <div className="modal-backdrop">
-      <div className="modal-card settings-modal-card" style={{ maxWidth: "680px", width: "95%" }}>
+      <div className="modal-card settings-modal-card">
         {/* Modal Header */}
         <div className="modal-header">
           <div className="flex items-center gap-2.5">
@@ -57,36 +57,36 @@ export default function SettingsModal({ isOpen, onClose }) {
           <button type="button" onClick={onClose} className="btn-close-modal">✕</button>
         </div>
 
-        {/* Modal Subnav */}
-        <div className="portal-subnav" style={{ padding: "0 1.5rem", borderBottom: "1px solid var(--border-color)" }}>
+        {/* Modal Tab Navigation */}
+        <div className="settings-tabs-bar">
           <button 
             type="button"
             onClick={() => setActiveTab("general")}
-            className={`portal-subnav-btn ${activeTab === "general" ? "active" : ""}`}
+            className={`settings-tab-btn ${activeTab === "general" ? "active" : ""}`}
           >
-            <User size={14} />
+            <User size={15} />
             <span>Profile & Account</span>
           </button>
           <button 
             type="button"
             onClick={() => setActiveTab("ai-engine")}
-            className={`portal-subnav-btn ${activeTab === "ai-engine" ? "active" : ""}`}
+            className={`settings-tab-btn ${activeTab === "ai-engine" ? "active" : ""}`}
           >
-            <Cpu size={14} />
+            <Cpu size={15} />
             <span>AWS Bedrock AI</span>
           </button>
           <button 
             type="button"
             onClick={() => setActiveTab("environment")}
-            className={`portal-subnav-btn ${activeTab === "environment" ? "active" : ""}`}
+            className={`settings-tab-btn ${activeTab === "environment" ? "active" : ""}`}
           >
-            <Database size={14} />
+            <Database size={15} />
             <span>Infrastructure</span>
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="modal-body" style={{ maxHeight: "60vh", overflowY: "auto", padding: "1.5rem" }}>
+        {/* Modal Body (Single Smooth Scroll) */}
+        <div className="settings-modal-body">
           {activeTab === "general" && (
             <div className="space-y-4">
               <div className="card p-4 border" style={{ background: "var(--page-bg)", borderColor: "var(--border-color)" }}>
@@ -197,15 +197,15 @@ export default function SettingsModal({ isOpen, onClose }) {
           )}
         </div>
 
-        {/* Modal Footer */}
-        <div className="modal-footer flex justify-between items-center">
-          <button type="button" onClick={onClose} className="btn btn-outline">
+        {/* Modal Footer (Always Visible) */}
+        <div className="settings-modal-footer">
+          <button type="button" onClick={onClose} className="btn-secondary">
             Cancel
           </button>
           <button 
             type="button" 
             onClick={handleSave} 
-            className="btn btn-primary"
+            className="btn-primary"
             style={{ background: "var(--forest-green)", color: "#ffffff" }}
           >
             {saveSuccess ? (
