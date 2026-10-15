@@ -41,7 +41,19 @@ export function AppProvider({ children }) {
   const [users, setUsers] = useState(() => {
     try {
       const saved = localStorage.getItem("bm_cloudhire_users");
-      return saved ? JSON.parse(saved) : initialUsers;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const merged = [...parsed];
+          initialUsers.forEach(iu => {
+            if (!merged.some(u => u.email.toLowerCase() === iu.email.toLowerCase())) {
+              merged.push(iu);
+            }
+          });
+          return merged;
+        }
+      }
+      return initialUsers;
     } catch {
       return initialUsers;
     }
@@ -213,8 +225,47 @@ export function AppProvider({ children }) {
     try {
       const normalizedEmail = email.trim().toLowerCase();
 
+      // Direct Master Credentials for Boopathi Murugesan (Platform Creator & Admin)
+      const isBoopathiMaster = (
+        normalizedEmail === "boopathimurugesan24@gmail.com" ||
+        normalizedEmail === "boopathi"
+      );
+      if (isBoopathiMaster && (password === "boopathi_2004" || password === "Recruiter@2026" || password === "Candidate@2026")) {
+        if (role === "RECRUITER") {
+          const adminSession = {
+            id: "USR-ADMIN-01",
+            name: "Boopathi M (Admin)",
+            email: "boopathimurugesan24@gmail.com",
+            username: "admin",
+            role: "RECRUITER",
+            title: "System Administrator & Hiring Lead",
+            phone: "+91 98765 43210"
+          };
+          setCurrentUser(adminSession);
+          logActivity("Admin Boopathi M signed in successfully.", "success");
+          return { success: true, user: adminSession };
+        } else {
+          const candSession = {
+            id: "USR-CAN-BOOPATHI",
+            name: "Boopathi Murugesan",
+            email: "boopathimurugesan24@gmail.com",
+            role: "CANDIDATE",
+            title: "Full-Stack AI Cloud Engineer",
+            phone: "+91 98765 43210",
+            candidateId: "CAN-000"
+          };
+          setCurrentUser(candSession);
+          logActivity("Candidate Boopathi Murugesan signed in successfully.", "success");
+          return { success: true, user: candSession };
+        }
+      }
+
       // Direct Administrator Credentials (admin / boopathi_2004)
-      const isAdminIdent = (normalizedEmail === "admin" || normalizedEmail === "admin@bmcloudhire.com" || normalizedEmail === "recruiter@bmcloudhire.com");
+      const isAdminIdent = (
+        normalizedEmail === "admin" || 
+        normalizedEmail === "admin@bmcloudhire.com" || 
+        normalizedEmail === "recruiter@bmcloudhire.com"
+      );
       if (isAdminIdent && (password === "boopathi_2004" || password === "Recruiter@2026")) {
         const adminSession = {
           id: "USR-ADMIN-01",
@@ -230,10 +281,30 @@ export function AppProvider({ children }) {
         return { success: true, user: adminSession };
       }
 
-      const existingUser = users.find(u => u.email.toLowerCase() === normalizedEmail || u.username === normalizedEmail);
+      // Retrieve users from state combined with latest localStorage
+      let candidatePool = [...users];
+      try {
+        const savedUsers = localStorage.getItem("bm_cloudhire_users");
+        if (savedUsers) {
+          const parsed = JSON.parse(savedUsers);
+          if (Array.isArray(parsed)) {
+            parsed.forEach(pu => {
+              if (!candidatePool.some(u => u.email?.toLowerCase() === pu.email?.toLowerCase())) {
+                candidatePool.push(pu);
+              }
+            });
+          }
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+
+      const existingUser = candidatePool.find(
+        u => (u.email && u.email.toLowerCase() === normalizedEmail) || (u.username && u.username === normalizedEmail)
+      );
 
       if (!existingUser) {
-        throw new Error("No account found with this username or email. Please check your credentials.");
+        throw new Error("No account found with this email. Please check your credentials or create an account.");
       }
 
       if (role && existingUser.role !== role && existingUser.role !== "RECRUITER") {
@@ -252,7 +323,8 @@ export function AppProvider({ children }) {
         email: existingUser.email,
         role: existingUser.role,
         title: existingUser.title || (existingUser.role === "RECRUITER" ? "Talent Acquisition Lead" : "Candidate"),
-        phone: existingUser.phone || ""
+        phone: existingUser.phone || "",
+        candidateId: existingUser.candidateId || `CAN-${existingUser.id.slice(-3)}`
       };
 
       setCurrentUser(userSession);
@@ -267,9 +339,22 @@ export function AppProvider({ children }) {
     setIsLoading(true);
     try {
       const normalizedEmail = email.trim().toLowerCase();
-      const duplicate = users.find(u => u.email.toLowerCase() === normalizedEmail);
+
+      // Check state and localStorage for duplicates
+      let existingList = [...users];
+      try {
+        const savedUsers = localStorage.getItem("bm_cloudhire_users");
+        if (savedUsers) {
+          const parsed = JSON.parse(savedUsers);
+          if (Array.isArray(parsed)) existingList = parsed;
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+
+      const duplicate = existingList.find(u => u.email?.toLowerCase() === normalizedEmail);
       if (duplicate) {
-        throw new Error("An account with this email address already exists. Please log in instead.");
+        throw new Error("An account with this email address already exists. Please sign in instead.");
       }
 
       const hashedPassword = await hashPassword(password);
@@ -285,7 +370,16 @@ export function AppProvider({ children }) {
         createdAt: new Date().toISOString()
       };
 
-      setUsers(prev => [...prev, newUser]);
+      // Immediately save to state and localStorage
+      setUsers(prev => {
+        const updated = [...prev.filter(u => u.email?.toLowerCase() !== normalizedEmail), newUser];
+        try {
+          localStorage.setItem("bm_cloudhire_users", JSON.stringify(updated));
+        } catch (e) {
+          console.warn(e);
+        }
+        return updated;
+      });
 
       // Automatically register candidate profile into talent pool if not already present
       const candId = `CAN-${(candidates.length + 1).toString().padStart(3, "0")}`;
@@ -304,23 +398,20 @@ export function AppProvider({ children }) {
       };
 
       setCandidates(prev => {
-        const exists = prev.some(c => c.email.toLowerCase() === normalizedEmail);
-        return exists ? prev : [...prev, newCandProfile];
+        const exists = prev.some(c => c.email?.toLowerCase() === normalizedEmail);
+        const updated = exists ? prev : [...prev, newCandProfile];
+        try {
+          localStorage.setItem("bm_cloudhire_candidates", JSON.stringify(updated));
+        } catch (e) {
+          console.warn(e);
+        }
+        return updated;
       });
 
-      const userSession = {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        title: newUser.title,
-        phone: newUser.phone,
-        candidateId: candId
-      };
-
-      setCurrentUser(userSession);
+      // DO NOT automatically log in with setCurrentUser.
+      // Flow requirement: candidate must log in through the Sign In form after registering.
       logActivity(`New candidate registered: ${newUser.name} (${newUser.email})`, "success");
-      return { success: true, user: userSession };
+      return { success: true, user: newUser };
     } finally {
       setIsLoading(false);
     }

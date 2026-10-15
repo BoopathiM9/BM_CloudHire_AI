@@ -42,12 +42,14 @@ export default function AuthLandingPage({ onLoginSuccess }) {
   const [regSkills, setRegSkills] = useState("");
 
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Admin Login Handler
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
     setLoading(true);
 
     try {
@@ -69,6 +71,7 @@ export default function AuthLandingPage({ onLoginSuccess }) {
   const handleCandidateLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
     setLoading(true);
 
     try {
@@ -90,6 +93,7 @@ export default function AuthLandingPage({ onLoginSuccess }) {
   const handleCandidateRegister = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
     setLoading(true);
 
     if (!regName.trim() || !regEmail.trim() || !regPassword) {
@@ -120,8 +124,18 @@ export default function AuthLandingPage({ onLoginSuccess }) {
         skills: skillsArray.length > 0 ? skillsArray : ["Python", "AWS", "React", "Cloud Computing"]
       });
 
-      if (res.success && onLoginSuccess) {
-        onLoginSuccess(res.user);
+      if (res.success) {
+        // Flow requirement: Do NOT enter page directly!
+        // Direct candidate to the Sign In form with their email pre-filled.
+        setSuccessMessage("Account created successfully! Please sign in with your email and password.");
+        setError("");
+        setCandidateMode("login");
+        setCandidateEmail(regEmail.trim());
+        setCandidatePassword("");
+        setRegPassword("");
+        setRegName("");
+        setRegTitle("");
+        setRegSkills("");
       }
     } catch (err) {
       setError(err.message || "Registration failed. An account with this email may already exist.");
@@ -148,7 +162,7 @@ export default function AuthLandingPage({ onLoginSuccess }) {
         <div className="login-segmented-tabs">
           <button
             type="button"
-            onClick={() => { setActivePortal("candidate"); setError(""); }}
+            onClick={() => { setActivePortal("candidate"); setError(""); setSuccessMessage(""); }}
             className={`login-tab-btn ${activePortal === "candidate" ? "active" : ""}`}
           >
             <User size={15} />
@@ -157,13 +171,21 @@ export default function AuthLandingPage({ onLoginSuccess }) {
 
           <button
             type="button"
-            onClick={() => { setActivePortal("admin"); setError(""); }}
+            onClick={() => { setActivePortal("admin"); setError(""); setSuccessMessage(""); }}
             className={`login-tab-btn ${activePortal === "admin" ? "active admin-active" : ""}`}
           >
             <ShieldCheck size={15} />
             <span>Administrator</span>
           </button>
         </div>
+
+        {/* Success Alert Message */}
+        {successMessage && (
+          <div className="login-success-banner">
+            <CheckCircle2 size={16} style={{ flexShrink: 0, marginTop: "2px" }} />
+            <span>{successMessage}</span>
+          </div>
+        )}
 
         {/* Error Alert Message */}
         {error && (
@@ -182,14 +204,14 @@ export default function AuthLandingPage({ onLoginSuccess }) {
             <div className="login-sub-tabs">
               <button
                 type="button"
-                onClick={() => { setCandidateMode("login"); setError(""); }}
+                onClick={() => { setCandidateMode("login"); setError(""); setSuccessMessage(""); }}
                 className={`login-sub-tab-btn ${candidateMode === "login" ? "active" : ""}`}
               >
                 Sign In
               </button>
               <button
                 type="button"
-                onClick={() => { setCandidateMode("register"); setError(""); }}
+                onClick={() => { setCandidateMode("register"); setError(""); setSuccessMessage(""); }}
                 className={`login-sub-tab-btn ${candidateMode === "register" ? "active" : ""}`}
               >
                 Create Account
@@ -250,7 +272,7 @@ export default function AuthLandingPage({ onLoginSuccess }) {
                   Don't have an account?
                   <button
                     type="button"
-                    onClick={() => { setCandidateMode("register"); setError(""); }}
+                    onClick={() => { setCandidateMode("register"); setError(""); setSuccessMessage(""); }}
                     className="login-switch-link"
                   >
                     Create an account
@@ -353,7 +375,7 @@ export default function AuthLandingPage({ onLoginSuccess }) {
                   Already have an account?
                   <button
                     type="button"
-                    onClick={() => { setCandidateMode("login"); setError(""); }}
+                    onClick={() => { setCandidateMode("login"); setError(""); setSuccessMessage(""); }}
                     className="login-switch-link"
                   >
                     Sign in

@@ -29,11 +29,14 @@ export default function CandidateAuthModal({ isOpen, onClose, initialMode = "can
   const [experienceYears, setExperienceYears] = useState("3");
   const [skills, setSkills] = useState("");
 
+  const [successMessage, setSuccessMessage] = useState("");
+
   if (!isOpen) return null;
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
     setLoading(true);
 
     try {
@@ -53,6 +56,7 @@ export default function CandidateAuthModal({ isOpen, onClose, initialMode = "can
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
     setLoading(true);
 
     if (!name.trim() || !email.trim() || !password) {
@@ -84,8 +88,9 @@ export default function CandidateAuthModal({ isOpen, onClose, initialMode = "can
       });
 
       if (res.success) {
-        onClose();
-        if (onSuccess) onSuccess(res.user);
+        setSuccessMessage("Account created successfully! Please sign in with your email and password.");
+        setMode("candidate-login");
+        setPassword("");
       }
     } catch (err) {
       setError(err.message || "Registration failed.");
@@ -149,6 +154,13 @@ export default function CandidateAuthModal({ isOpen, onClose, initialMode = "can
 
         {/* Modal Body */}
         <div className="modal-body auth-modal-body">
+          {successMessage && (
+            <div className="login-success-banner" style={{ marginBottom: "1rem" }}>
+              <CheckCircle size={16} style={{ flexShrink: 0, marginTop: "2px" }} />
+              <span>{successMessage}</span>
+            </div>
+          )}
+
           {error && (
             <div className="auth-error-alert">
               <AlertCircle size={16} />

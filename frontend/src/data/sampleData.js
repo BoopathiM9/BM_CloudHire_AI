@@ -173,6 +173,15 @@ export const initialUsers = [
     passwordHash: "4b4cdf8dec9461e629d9dabb45ec2ed9c11b9a5f18cb57f35ea62b93dfc45e0b"
   },
   {
+    id: "USR-CAN-BOOPATHI",
+    name: "Boopathi Murugesan",
+    email: "boopathimurugesan24@gmail.com",
+    role: "CANDIDATE",
+    title: "Full-Stack AI Cloud Engineer",
+    phone: "+91 98765 43210",
+    passwordHash: "4b4cdf8dec9461e629d9dabb45ec2ed9c11b9a5f18cb57f35ea62b93dfc45e0b"
+  },
+  {
     id: "USR-CAN-01",
     name: "Arun Krishnan",
     email: "arun.krishnan@example.com",

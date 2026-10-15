@@ -4188,6 +4188,24 @@ body {
   animation: shake 0.35s ease-in-out;
 }
 
+/* Success Banner */
+.login-success-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  padding: 11px 14px;
+  border-radius: 9px;
+  font-size: 0.84rem;
+  margin-bottom: 1.25rem;
+  font-weight: 500;
+  line-height: 1.45;
+  box-shadow: 0 1px 2px rgba(21, 128, 61, 0.05);
+  animation: fadeIn 0.25s ease-in-out;
+}
+
 /* Card Bottom Footer */
 .login-card-footer {
   margin-top: 1.75rem;
