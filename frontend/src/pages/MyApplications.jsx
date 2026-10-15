@@ -6,7 +6,10 @@ import {
   Briefcase, 
   CheckCircle2, 
   XCircle, 
-  Phone
+  Phone,
+  FileText,
+  Calendar,
+  AlertCircle
 } from "lucide-react";
 
 export default function MyApplications({ setActiveTab }) {
@@ -17,89 +20,60 @@ export default function MyApplications({ setActiveTab }) {
       case "Pending Review":
       case "Submitted":
         return (
-          <span 
-            className="badge badge-warning" 
-            style={{ 
-              background: '#fef3c7', 
-              color: '#92400e', 
-              border: '1px solid #fde68a', 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '5px',
-              padding: '4px 10px',
-              borderRadius: '9999px',
-              fontWeight: 700
-            }}
-          >
-            <Clock size={13} /> Pending Review
+          <span className="badge-pill badge-pill-warning">
+            <Clock size={13} />
+            <span>Pending Review</span>
           </span>
         );
       case "Approved":
       case "Selected":
         return (
-          <span 
-            className="badge badge-success" 
-            style={{ 
-              background: '#dcfce7', 
-              color: '#15803d', 
-              border: '1px solid #86efac', 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '5px',
-              padding: '4px 10px',
-              borderRadius: '9999px',
-              fontWeight: 700
-            }}
-          >
-            <CheckCircle2 size={13} /> Request Approved
+          <span className="badge-pill badge-pill-success">
+            <CheckCircle2 size={13} />
+            <span>Request Approved</span>
           </span>
         );
       case "Under Review":
-        return <span className="badge badge-primary"><Clock size={13} /> Under Review</span>;
+        return (
+          <span className="badge-pill badge-pill-primary">
+            <Clock size={13} />
+            <span>Under Review</span>
+          </span>
+        );
       case "Shortlisted":
         return (
-          <span 
-            className="badge badge-success" 
-            style={{ 
-              background: '#dcfce7', 
-              color: '#166534', 
-              border: '1px solid #bbf7d0', 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '5px',
-              padding: '4px 10px',
-              borderRadius: '9999px' 
-            }}
-          >
-            <CheckCircle2 size={13} /> Approved / Shortlisted
+          <span className="badge-pill badge-pill-success">
+            <CheckCircle2 size={13} />
+            <span>Approved / Shortlisted</span>
           </span>
         );
       case "Interview":
-        return <span className="badge badge-purple">Interview Stage</span>;
+        return (
+          <span className="badge-pill badge-pill-purple">
+            <Calendar size={13} />
+            <span>Interview Stage</span>
+          </span>
+        );
       case "Not Selected":
       case "Rejected":
         return (
-          <span 
-            className="badge badge-danger" 
-            style={{ 
-              background: '#fee2e2', 
-              color: '#991b1b', 
-              border: '1px solid #fecaca', 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '5px',
-              padding: '4px 10px',
-              borderRadius: '9999px',
-              fontWeight: 600
-            }}
-          >
-            <XCircle size={13} /> Not Selected
+          <span className="badge-pill badge-pill-danger">
+            <XCircle size={13} />
+            <span>Not Selected</span>
           </span>
         );
       case "Withdrawn":
-        return <span className="badge badge-muted">Withdrawn</span>;
+        return (
+          <span className="badge-pill badge-pill-muted">
+            <span>Withdrawn</span>
+          </span>
+        );
       default:
-        return <span className="badge badge-subtle">{status}</span>;
+        return (
+          <span className="badge-pill badge-pill-muted">
+            <span>{status}</span>
+          </span>
+        );
     }
   };
 
@@ -124,7 +98,7 @@ export default function MyApplications({ setActiveTab }) {
       </div>
 
       {/* Applications List */}
-      <div className="mt-6">
+      <div>
         {candidateApplications.length === 0 ? (
           <div className="empty-state-card">
             <div className="empty-state-icon-box">
@@ -143,20 +117,23 @@ export default function MyApplications({ setActiveTab }) {
             </button>
           </div>
         ) : (
-          <div className="my-applications-grid grid gap-4">
+          <div className="my-applications-grid">
             {candidateApplications.map((app) => (
-              <div key={app.id} className="candidate-app-card card p-5 border border-slate-200 hover:shadow-md transition">
-                <div className="app-card-top flex justify-between items-start flex-wrap gap-2">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="reference-pill font-mono font-bold text-xs bg-slate-100 text-slate-800 px-2 py-0.5 rounded">{app.id}</span>
-                      <span className="app-date text-xs text-muted">
+              <div key={app.id} className="candidate-app-card">
+                {/* Card Top: Tags, Job Title, Applicant Info, and Status Badge */}
+                <div className="app-card-top">
+                  <div className="app-card-title-group">
+                    <div className="app-card-header-tags">
+                      <span className="reference-pill">{app.id}</span>
+                      <span className="app-date">
                         Applied on {new Date(app.submittedAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <h2 className="app-job-title text-lg font-bold text-slate-900">{app.jobTitle}</h2>
-                    <div className="text-xs text-slate-600 mt-0.5">
-                      Applicant: <strong>{app.candidateName}</strong> ({app.candidateEmail})
+                    <h2 className="app-job-title">{app.jobTitle}</h2>
+                    <div className="app-applicant-info">
+                      <span>Applicant:</span>
+                      <strong>{app.candidateName}</strong>
+                      <span className="text-muted">({app.candidateEmail})</span>
                     </div>
                   </div>
                   <div>
@@ -166,93 +143,115 @@ export default function MyApplications({ setActiveTab }) {
 
                 {/* Status Box: Approved vs Pending vs General */}
                 {app.status === "Approved" || app.status === "Selected" ? (
-                  <div className="app-status-box approved-box mt-3 p-4 rounded-xl border border-emerald-300 bg-emerald-50/90 shadow-2xs">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-emerald-600 text-white flex-shrink-0">
+                  <div className="status-banner status-banner-approved">
+                    <div className="status-banner-icon-col">
+                      <div className="status-banner-icon-circle approved-circle">
                         <CheckCircle2 size={20} />
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <span className="badge badge-success font-bold text-xs" style={{ background: '#dcfce7', color: '#15803d', border: '1px solid #86efac' }}>
-                            ✓ Request Approved
-                          </span>
-                          <span className="text-[11px] text-emerald-800 font-semibold">Hiring Decision: Approved by Lead</span>
+                    </div>
+                    <div className="status-banner-content">
+                      <div className="status-banner-headline">
+                        <h3 className="status-banner-title approved-title">
+                          🎉 Congratulations! Request Approved
+                        </h3>
+                        <span className="badge-pill badge-pill-success">✓ Request Approved</span>
+                      </div>
+                      <p className="status-banner-desc approved-desc">
+                        {app.statusNote || "Your technical qualifications and resume match our requirements. The hiring lead has approved your application."}
+                      </p>
+                      
+                      {/* Talent Acquisition Onboarding Card */}
+                      <div className="onboarding-contact-card">
+                        <div className="onboarding-contact-header">
+                          <Phone size={16} className="text-emerald" />
+                          <strong>Next Step: Our Talent Acquisition team will contact you shortly!</strong>
                         </div>
-                        <h4 className="font-bold text-emerald-950 text-sm mt-1">
-                          🎉 Congratulations! Your Application & Resume Have Been Approved
-                        </h4>
-                        <p className="text-xs text-emerald-900 mt-1 leading-relaxed">
-                          {app.statusNote || "Your technical qualifications and resume match our requirements. The hiring lead has approved your application."}
+                        <p className="onboarding-contact-body">
+                          A recruiter will reach out via email (<strong>{app.candidateEmail}</strong>) or phone (<strong>{app.phone || "your provided phone number"}</strong>) within <strong>24 to 48 business hours</strong> to schedule your technical discussion and onboarding steps.
                         </p>
-                        
-                        {/* Team Contact Details Box */}
-                        <div className="mt-3 p-3 bg-white/95 rounded-lg border border-emerald-200 text-xs text-slate-800 space-y-1.5 shadow-2xs">
-                          <div className="flex items-center gap-2 font-bold text-emerald-900">
-                            <Phone size={14} className="text-emerald-600" />
-                            <span>Next Step: Our Talent Acquisition team will contact you shortly!</span>
-                          </div>
-                          <p className="text-slate-600 text-xs pl-6 leading-relaxed">
-                            A recruiter will reach out via email (<strong>{app.candidateEmail}</strong>) or phone (<strong>{app.phone || "your provided phone number"}</strong>) within <strong>24 to 48 business hours</strong> to schedule your technical discussion and onboarding steps.
-                          </p>
-                          <div className="flex items-center gap-2 text-slate-500 pl-6 pt-1 text-[11px]">
-                            <Clock size={12} className="text-emerald-600" />
-                            <span>Technical Screening Queue: <strong>Active & Prioritized</strong></span>
-                          </div>
+                        <div className="onboarding-contact-footer">
+                          <Clock size={13} className="text-emerald" />
+                          <span>Technical Screening Queue: <strong>Active & Prioritized</strong></span>
                         </div>
                       </div>
                     </div>
                   </div>
                 ) : app.status === "Pending Review" || app.status === "Submitted" ? (
-                  <div className="app-status-box pending-box mt-3 p-3.5 rounded-xl border border-amber-200 bg-amber-50/80">
-                    <div className="flex items-start gap-3">
-                      <div className="p-1.5 rounded-lg bg-amber-500 text-white flex-shrink-0 mt-0.5">
-                        <Clock size={16} />
+                  <div className="status-banner status-banner-pending">
+                    <div className="status-banner-icon-col">
+                      <div className="status-banner-icon-circle pending-circle">
+                        <Clock size={18} />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="badge badge-warning font-semibold text-xs" style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
-                            Status: Pending Review
-                          </span>
-                          <span className="text-[11px] text-amber-800 font-medium">Awaiting Administrator Decision</span>
-                        </div>
-                        <p className="text-xs text-amber-900 mt-1 leading-relaxed">
-                          {app.statusNote || "Your application and resume have been securely received. The hiring administrator is reviewing your technical competencies against open requisitions."}
-                        </p>
-                        <p className="text-[11px] text-amber-700 mt-1.5">
-                          ℹ️ Once the administrator reviews and approves your resume, this status will transition to <strong>Request Approved</strong> and our recruitment team will contact you directly.
-                        </p>
+                    </div>
+                    <div className="status-banner-content">
+                      <div className="status-banner-headline">
+                        <h3 className="status-banner-title">Awaiting Administrator Review & Decision</h3>
+                        <span className="badge-pill badge-pill-warning">Status: Pending Review</span>
+                      </div>
+                      <p className="status-banner-desc">
+                        {app.statusNote || "Your application and resume have been securely received in our recruitment database. An administrator is currently screening your qualifications against open requisition benchmarks."}
+                      </p>
+                      <div className="status-banner-tip">
+                        <span>ℹ️</span>
+                        <span>
+                          Once the administrator reviews and approves your resume, this status will transition to <strong>Request Approved</strong> and our recruitment team will reach out directly.
+                        </span>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="app-status-box mt-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Clock size={14} className="text-primary" />
-                      <span className="text-xs font-semibold text-slate-800">Status Update:</span>
+                  <div className="status-banner status-banner-default">
+                    <div className="status-banner-icon-col">
+                      <div className="status-banner-icon-circle default-circle">
+                        <AlertCircle size={18} />
+                      </div>
                     </div>
-                    <p className="app-status-note text-xs text-slate-700 leading-relaxed font-medium">
-                      {app.statusNote || app.status}
-                    </p>
+                    <div className="status-banner-content">
+                      <div className="status-banner-headline">
+                        <h3 className="status-banner-title" style={{ color: '#1e293b' }}>Application Status Update</h3>
+                        {getStatusBadge(app.status)}
+                      </div>
+                      <p className="status-banner-desc" style={{ color: '#475569' }}>
+                        {app.statusNote || app.status}
+                      </p>
+                    </div>
                   </div>
                 )}
 
-                {/* Details Meta */}
-                <div className="app-details-meta flex flex-wrap gap-4 text-xs text-slate-600 mt-3 pt-3 border-t border-slate-100">
-                  <span>📄 Resume: <strong className="text-slate-800">{app.resumeFilename || "resume.pdf"}</strong></span>
-                  <span>⏱️ Claimed Experience: <strong className="text-slate-800">{app.experienceYears} Years</strong></span>
-                  <span>📅 Last Updated: <strong className="text-slate-800">{app.updatedAt ? new Date(app.updatedAt).toLocaleDateString() : "Recently"}</strong></span>
+                {/* Details Meta Strip */}
+                <div className="app-card-meta-strip">
+                  <div className="meta-strip-item">
+                    <FileText size={15} className="meta-icon" />
+                    <span className="meta-label">Resume Document:</span>
+                    <strong className="meta-val">{app.resumeFilename || "resume.pdf"}</strong>
+                  </div>
+                  <div className="meta-strip-divider"></div>
+                  <div className="meta-strip-item">
+                    <Briefcase size={15} className="meta-icon" />
+                    <span className="meta-label">Claimed Experience:</span>
+                    <strong className="meta-val">{app.experienceYears} Years</strong>
+                  </div>
+                  <div className="meta-strip-divider"></div>
+                  <div className="meta-strip-item">
+                    <Calendar size={15} className="meta-icon" />
+                    <span className="meta-label">Last Updated:</span>
+                    <strong className="meta-val">{app.updatedAt ? new Date(app.updatedAt).toLocaleDateString() : "Recently"}</strong>
+                  </div>
                 </div>
 
                 {/* Withdraw Action (if active) */}
                 {currentUser && app.status !== "Withdrawn" && app.status !== "Approved" && (
-                  <div className="app-card-actions mt-3 flex justify-end">
+                  <div className="app-card-footer">
+                    <span className="text-xs text-muted">
+                      Need to update credentials? You can withdraw this submission and re-apply at any time.
+                    </span>
                     <button 
                       onClick={() => {
                         if (window.confirm(`Are you sure you want to withdraw your application (${app.id})?`)) {
                           withdrawApplication(app.id);
                         }
                       }}
-                      className="btn btn-ghost btn-xs text-danger"
+                      className="btn btn-outline-danger btn-sm"
                     >
                       Withdraw Application
                     </button>
