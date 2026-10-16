@@ -47,12 +47,12 @@ class GlobalErrorBoundary extends Component {
             maxWidth: '520px',
             border: '1px solid #e2e8f0'
           }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>⚙️</div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', color: '#1e293b' }}>
-              BM CloudHire — Recovery Screen
+            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>💀</div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '0.5rem', color: '#ef4444', textTransform: 'lowercase' }}>
+              app is dead
             </h2>
             <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1.5rem', lineHeight: 1.5 }}>
-              An unexpected interface error occurred during state hydration. Click below to reload and reset session cache.
+              A fatal client exception was caught. Silent recovery disabled.
             </p>
             <button
               onClick={this.handleReload}

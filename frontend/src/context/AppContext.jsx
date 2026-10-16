@@ -3,12 +3,15 @@ import { initialJobs, initialCandidates, initialApplications, initialUsers } fro
 import { evaluateCandidateMatch } from "../services/scoringEngine";
 import { hashPassword, verifyPassword } from "../services/authService";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://6y44jbl350.execute-api.us-east-1.amazonaws.com";
 
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
   const [backendConnected, setBackendConnected] = useState(true);
+  const [appIsDead, setAppIsDead] = useState(false);
+  const [deadError, setDeadError] = useState(null);
+  const [isCheckingHealth, setIsCheckingHealth] = useState(false);
 
   // Core Data States with localStorage persistence so data survives page refresh
   const [jobs, setJobs] = useState(() => {
@@ -147,9 +150,10 @@ export function AppProvider({ children }) {
 
   // Real Health Check & Live Sync
   const checkHealthAndSync = useCallback(async () => {
+    setIsCheckingHealth(true);
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       const respJobs = await fetch(`${API_BASE_URL}/jobs`, { signal: controller.signal });
       clearTimeout(timeoutId);
@@ -160,6 +164,8 @@ export function AppProvider({ children }) {
           setJobs(dataJobs.jobs);
         }
         setBackendConnected(true);
+        setAppIsDead(false);
+        setDeadError(null);
 
         // Fetch candidates from backend
         try {
@@ -198,11 +204,33 @@ export function AppProvider({ children }) {
           }
         } catch {}
       } else {
+        // [COMMENTED / REMOVED SILENT FALLBACK HACK]
+        // Former silent fallback:
+        // setBackendConnected(false);
+        //
+        // Now: Show "app is dead" if backend returns error
+        const statusMsg = `Backend /jobs returned HTTP ${respJobs.status}: ${respJobs.statusText || "Service unavailable"}`;
+        console.error(statusMsg);
         setBackendConnected(false);
+        setAppIsDead(true);
+        setDeadError(statusMsg);
       }
-    } catch {
-      // Backend not running, gracefully fallback to Demo / Offline Mode
+    } catch (err) {
+      // [COMMENTED / REMOVED SILENT FALLBACK HACK]
+      // Former silent fallback:
+      // // Backend not running, gracefully fallback to Demo / Offline Mode
+      // setBackendConnected(false);
+      //
+      // Now: Show "app is dead" if error is caught in the catch
+      const errMsg = err?.name === "AbortError"
+        ? "Network timeout (10s) connecting to AWS API Gateway. Lambda cold start or connection timed out."
+        : (err?.message || "Backend network error caught in catch block.");
+      console.error("Backend error caught in catch:", errMsg, err);
       setBackendConnected(false);
+      setAppIsDead(true);
+      setDeadError(errMsg);
+    } finally {
+      setIsCheckingHealth(false);
     }
   }, []);
 
@@ -587,9 +615,17 @@ export function AppProvider({ children }) {
             setSelectedJobId(res.job.jobId || res.job.id);
             logActivity(`Created job requisition: "${res.job.title}" (${res.job.status})`, "success");
             return res.job;
+          } else {
+            throw new Error(`Failed to create job on backend (HTTP ${resp.status})`);
           }
         } catch (e) {
-          console.warn("Backend addJob failed, saving locally:", e);
+          // [COMMENTED / REMOVED SILENT FALLBACK HACK]
+          // Former silent fallback:
+          // console.warn("Backend addJob failed, saving locally:", e);
+          console.error("Backend addJob caught exception:", e);
+          setAppIsDead(true);
+          setDeadError(e?.message || "Backend error creating job requisition.");
+          throw e;
         }
       }
 
@@ -700,9 +736,17 @@ export function AppProvider({ children }) {
             logActivity(`Confirmed ${candidateIds.length} candidate(s) to "${jobTitle}"`, "success");
             await checkHealthAndSync();
             return;
+          } else {
+            throw new Error(`Failed to confirm candidate assignment on backend (HTTP ${resp.status})`);
           }
         } catch (e) {
-          console.warn("Backend assignment error, falling back to local state:", e);
+          // [COMMENTED / REMOVED SILENT FALLBACK HACK]
+          // Former silent fallback:
+          // console.warn("Backend assignment error, falling back to local state:", e);
+          console.error("Backend assignment caught exception:", e);
+          setAppIsDead(true);
+          setDeadError(e?.message || "Backend error confirming candidate assignment.");
+          throw e;
         }
       }
 
@@ -761,9 +805,17 @@ export function AppProvider({ children }) {
             logActivity(`Released ${record.candidateName} back to available candidate pool`, "warning");
             await checkHealthAndSync();
             return;
+          } else {
+            throw new Error(`Failed to release candidate assignment on backend (HTTP ${resp.status})`);
           }
         } catch (e) {
-          console.warn("Backend release error, falling back to local state:", e);
+          // [COMMENTED / REMOVED SILENT FALLBACK HACK]
+          // Former silent fallback:
+          // console.warn("Backend release error, falling back to local state:", e);
+          console.error("Backend release caught exception:", e);
+          setAppIsDead(true);
+          setDeadError(e?.message || "Backend error releasing candidate assignment.");
+          throw e;
         }
       }
 
@@ -853,6 +905,10 @@ export function AppProvider({ children }) {
         assignments,
         recentActivity,
         backendConnected,
+        appIsDead,
+        deadError,
+        isCheckingHealth,
+        setAppIsDead,
         checkHealthAndSync,
         isLoading,
         loginUser,

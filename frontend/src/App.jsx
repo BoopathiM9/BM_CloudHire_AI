@@ -16,9 +16,10 @@ import AssignmentHistory from "./pages/AssignmentHistory";
 import AuthLandingPage from "./pages/AuthLandingPage";
 import JobDetailsModal from "./components/JobDetailsModal";
 import CandidateApplyModal from "./components/CandidateApplyModal";
+import AppIsDeadScreen from "./components/AppIsDeadScreen";
 
 function AppContent() {
-  const { currentUser } = useApp();
+  const { currentUser, appIsDead, deadError, isCheckingHealth, checkHealthAndSync } = useApp();
   const isRecruiter = currentUser?.role === "RECRUITER";
 
   // Tab State: Candidate defaults to 'find-jobs', Admin defaults to 'applications'
@@ -64,6 +65,19 @@ function AppContent() {
       setActiveTab("find-jobs");
     }
   };
+
+  // =========================================================================
+  // FAIL-SAFE BACKEND CHECK: If error caught in catch, show "app is dead"
+  // =========================================================================
+  if (appIsDead) {
+    return (
+      <AppIsDeadScreen
+        error={deadError}
+        onRetry={checkHealthAndSync}
+        isChecking={isCheckingHealth}
+      />
+    );
+  }
 
   // =========================================================================
   // FIRST PAGE GATEWAY: If not authenticated, ONLY render AuthLandingPage

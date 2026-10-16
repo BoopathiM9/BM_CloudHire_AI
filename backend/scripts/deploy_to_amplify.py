@@ -33,18 +33,17 @@ def build_frontend():
     dist_dir = os.path.join(frontend_dir, "dist")
     index_file = os.path.join(dist_dir, "index.html")
 
-    if not os.path.exists(index_file):
-        print("Running npm run build...")
-        env = os.environ.copy()
-        node_path = r"C:\Program Files\nodejs"
-        if node_path not in env.get("PATH", ""):
-            env["PATH"] = node_path + ";" + env.get("PATH", "")
-        env["NODE_OPTIONS"] = "--max-old-space-size=4096"
-        cmd = "cmd /c \"npm run build\""
-        res = subprocess.run(cmd, cwd=frontend_dir, shell=True, capture_output=True, text=True, env=env)
-        if res.returncode != 0:
-            print(f"[ERROR] Build failed: {res.stderr}")
-            sys.exit(1)
+    print("Running npm run build to compile fresh production assets...")
+    env = os.environ.copy()
+    node_path = r"C:\Program Files\nodejs"
+    if node_path not in env.get("PATH", ""):
+        env["PATH"] = node_path + ";" + env.get("PATH", "")
+    env["NODE_OPTIONS"] = "--max-old-space-size=4096"
+    cmd = "cmd /c \"npm run build\""
+    res = subprocess.run(cmd, cwd=frontend_dir, shell=True, capture_output=True, text=True, env=env)
+    if res.returncode != 0:
+        print(f"[ERROR] Build failed: {res.stderr}")
+        sys.exit(1)
     
     print("[OK] Production build verified in frontend/dist")
 
