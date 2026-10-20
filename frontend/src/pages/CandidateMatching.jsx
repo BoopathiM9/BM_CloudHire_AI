@@ -7,7 +7,10 @@ import {
   CheckSquare, 
   AlertCircle, 
   Users, 
-  Info
+  Info,
+  UserCheck,
+  Check,
+  ArrowRight
 } from "lucide-react";
 
 export default function CandidateMatching({ setActiveTab }) {
@@ -26,12 +29,38 @@ export default function CandidateMatching({ setActiveTab }) {
   // Evaluate matches for the active job requisition
   const { topThree, remaining, totalEligible } = getRankedMatchesForJob(selectedJobId);
 
-  const toggleSelectCandidate = (candidateId) => {
-    if (selectedForAssign.includes(candidateId)) {
-      setSelectedForAssign(selectedForAssign.filter(id => id !== candidateId));
-    } else {
-      setSelectedForAssign([...selectedForAssign, candidateId]);
+  // Toggle selection for a single candidate with propagation stop
+  const toggleSelectCandidate = (candidateId, e) => {
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
     }
+    setSelectedForAssign(prev => {
+      if (prev.includes(candidateId)) {
+        return prev.filter(id => id !== candidateId);
+      } else {
+        return [...prev, candidateId];
+      }
+    });
+  };
+
+  // Direct 1-click assignment for a single selected candidate
+  const handleAssignSingle = async (candidateId, candidateName) => {
+    const jobTitle = selectedJob ? selectedJob.title : selectedJobId;
+    const proceed = window.confirm(
+      `Confirm assignment for "${candidateName}" (${candidateId}) to "${jobTitle}"?\n\nBusiness Rule Enforcement:\nThis candidate will be marked as ASSIGNED and removed from all future job match recommendations.`
+    );
+
+    if (!proceed) return;
+
+    await confirmAssignment(selectedJobId, [candidateId]);
+
+    setAssignmentNotice({
+      count: 1,
+      jobTitle,
+      assignedIds: [candidateId]
+    });
+
+    setSelectedForAssign(prev => prev.filter(id => id !== candidateId));
   };
 
   const handleSelectAllTopThree = () => {
@@ -162,28 +191,65 @@ export default function CandidateMatching({ setActiveTab }) {
       {/* Top 3 Header & Actions */}
       <div className="section-header-row mt-6">
         <div>
-          <h3 className="section-title">Top {topThree.length} Candidates</h3>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <h3 className="section-title">Top {topThree.length} Recommended Candidates</h3>
+            {selectedForAssign.length > 0 && (
+              <span 
+                style={{
+                  background: "#DDF5EB",
+                  color: "#173C35",
+                  border: "1px solid #52BFA0",
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  padding: "0.15rem 0.55rem",
+                  borderRadius: "9999px"
+                }}
+              >
+                {selectedForAssign.length} Selected
+              </span>
+            )}
+          </div>
           <p className="section-sub">
-            Ranked by skill match, experience, and project alignment.
+            You can select <strong>any single resume</strong>, multiple candidates, or all top 3 for assignment.
           </p>
         </div>
 
         {topThree.length > 0 && (
           <div className="assignment-control-actions">
+            {selectedForAssign.length > 0 && (
+              <button 
+                type="button"
+                onClick={() => setSelectedForAssign([])}
+                className="btn-outline-sm"
+                style={{ color: "#64748b" }}
+                title="Clear candidate selection"
+              >
+                Clear Selection
+              </button>
+            )}
+
             <button 
+              type="button"
               onClick={handleSelectAllTopThree}
               className="btn-outline-sm"
             >
-              {selectedForAssign.length === topThree.length ? "Deselect All" : "Select Top 3"}
+              {selectedForAssign.length === topThree.length ? "Deselect All" : "Select All Top 3"}
             </button>
 
             <button
+              type="button"
               onClick={handleConfirmAssignment}
               disabled={selectedForAssign.length === 0}
               className={`btn-confirm-action ${selectedForAssign.length === 0 ? "disabled" : ""}`}
             >
               <CheckSquare size={16} />
-              <span>Confirm Assignment ({selectedForAssign.length})</span>
+              <span>
+                {selectedForAssign.length === 0
+                  ? "Select Candidate(s) to Assign"
+                  : selectedForAssign.length === 1
+                  ? "Confirm Assignment (1 Selected)"
+                  : `Confirm Assignment (${selectedForAssign.length} Selected)`}
+              </span>
             </button>
           </div>
         )}
@@ -214,7 +280,27 @@ export default function CandidateMatching({ setActiveTab }) {
                 {/* Header */}
                 <div className="spotlight-card-top">
                   <div>
-                    <span className={`rank-pill-badge ${rankClass}`}>{rankLabel} Candidate</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", marginBottom: "0.25rem" }}>
+                      <span className={`rank-pill-badge ${rankClass}`}>{rankLabel} Candidate</span>
+                      {isChecked && (
+                        <span 
+                          style={{
+                            background: "#dcfce7",
+                            color: "#166534",
+                            border: "1px solid #86efac",
+                            fontSize: "0.7rem",
+                            fontWeight: 700,
+                            padding: "0.15rem 0.45rem",
+                            borderRadius: "9999px",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "0.25rem"
+                          }}
+                        >
+                          <Check size={11} /> Selected
+                        </span>
+                      )}
+                    </div>
                     <h4 className="candidate-header-name">{match.candidateName}</h4>
                     <span className="candidate-code-id">{match.candidateId}</span>
                   </div>
@@ -293,20 +379,40 @@ export default function CandidateMatching({ setActiveTab }) {
                   )}
                 </div>
 
-                {/* Checkbox for Assignment Selection */}
-                <div 
-                  className={`selection-checkbox-bar ${isChecked ? "checked" : ""}`}
-                  onClick={() => toggleSelectCandidate(match.candidateId)}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={() => {}} // handled by parent onClick
-                    className="checkbox-custom"
-                  />
-                  <label className="checkbox-label-text">
-                    {isChecked ? "Candidate Selected for Assignment" : "Select this candidate for assignment"}
-                  </label>
+                {/* Candidate Selection & Direct Assignment Actions */}
+                <div className="card-actions-row">
+                  <div 
+                    className={`selection-checkbox-bar ${isChecked ? "checked" : ""}`}
+                    onClick={(e) => toggleSelectCandidate(match.candidateId, e)}
+                  >
+                    <input
+                      type="checkbox"
+                      id={`check-${match.candidateId}`}
+                      checked={isChecked}
+                      onChange={(e) => toggleSelectCandidate(match.candidateId, e)}
+                      className="checkbox-custom"
+                    />
+                    <label 
+                      htmlFor={`check-${match.candidateId}`}
+                      className="checkbox-label-text"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {isChecked ? "Candidate Selected (Click to Deselect)" : "Select this Candidate"}
+                    </label>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAssignSingle(match.candidateId, match.candidateName);
+                    }}
+                    className="btn-assign-single-card"
+                    title={`Assign only ${match.candidateName} to this role`}
+                  >
+                    <UserCheck size={14} />
+                    <span>Assign Only This Candidate</span>
+                  </button>
                 </div>
               </div>
             );
@@ -342,6 +448,7 @@ export default function CandidateMatching({ setActiveTab }) {
                   <th>Matched Skills</th>
                   <th>Missing Required</th>
                   <th>Experience</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -374,6 +481,30 @@ export default function CandidateMatching({ setActiveTab }) {
                       </div>
                     </td>
                     <td>{candMatch.breakdown.experience.years} yrs</td>
+                    <td>
+                      <button
+                        type="button"
+                        onClick={() => handleAssignSingle(candMatch.candidateId, candMatch.candidateName)}
+                        style={{
+                          fontSize: '0.72rem',
+                          padding: '0.35rem 0.65rem',
+                          borderRadius: '6px',
+                          background: '#ecfdf5',
+                          border: '1px solid #a7f3d0',
+                          color: '#065f46',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.3rem',
+                          whiteSpace: 'nowrap'
+                        }}
+                        title={`Assign ${candMatch.candidateName} to ${selectedJob?.title || selectedJobId}`}
+                      >
+                        <UserCheck size={12} />
+                        <span>Assign</span>
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -1928,6 +1928,37 @@ body {
 .checkbox-label-text {
   font-size: 0.8rem;
   cursor: pointer;
+  user-select: none;
+}
+
+.card-actions-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.85rem;
+  border-top: 1px dashed var(--border-color);
+}
+
+.btn-assign-single-card {
+  background: var(--forest-green);
+  color: #ffffff;
+  border: 1px solid var(--forest-green-dark);
+  border-radius: 8px;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all 0.15s ease;
+}
+
+.btn-assign-single-card:hover {
+  background: var(--forest-green-light);
+  transform: translateY(-1px);
 }
 
 .assignment-control-actions {
