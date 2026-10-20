@@ -161,7 +161,15 @@ export function AppProvider({ children }) {
       if (respJobs.ok) {
         const dataJobs = await respJobs.json();
         if (dataJobs.jobs && dataJobs.jobs.length > 0) {
-          setJobs(dataJobs.jobs);
+          const normalizedJobs = dataJobs.jobs.map((j, idx) => {
+            const jid = j.jobId || j.id || (j.PK ? j.PK.replace("JOB#", "") : `JOB-${101 + idx}`);
+            return {
+              ...j,
+              id: jid,
+              jobId: jid
+            };
+          });
+          setJobs(normalizedJobs);
         }
         setBackendConnected(true);
         setAppIsDead(false);
@@ -173,7 +181,15 @@ export function AppProvider({ children }) {
           if (respCands.ok) {
             const dataCands = await respCands.json();
             if (dataCands.candidates && dataCands.candidates.length > 0) {
-              setCandidates(dataCands.candidates);
+              const normalizedCands = dataCands.candidates.map((c, idx) => {
+                const cid = c.candidateId || c.id || (c.PK ? c.PK.replace("CANDIDATE#", "") : `CAN-${String(idx + 1).padStart(3, "0")}`);
+                return {
+                  ...c,
+                  id: cid,
+                  candidateId: cid
+                };
+              });
+              setCandidates(normalizedCands);
             }
           }
         } catch (err) {

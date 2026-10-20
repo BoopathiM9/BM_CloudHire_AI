@@ -34,6 +34,7 @@ export default function CandidateMatching({ setActiveTab }) {
     if (e && e.stopPropagation) {
       e.stopPropagation();
     }
+    if (!candidateId) return;
     setSelectedForAssign(prev => {
       if (prev.includes(candidateId)) {
         return prev.filter(id => id !== candidateId);
@@ -45,6 +46,7 @@ export default function CandidateMatching({ setActiveTab }) {
 
   // Direct 1-click assignment for a single selected candidate
   const handleAssignSingle = async (candidateId, candidateName) => {
+    if (!candidateId) return;
     const jobTitle = selectedJob ? selectedJob.title : selectedJobId;
     const proceed = window.confirm(
       `Confirm assignment for "${candidateName}" (${candidateId}) to "${jobTitle}"?\n\nBusiness Rule Enforcement:\nThis candidate will be marked as ASSIGNED and removed from all future job match recommendations.`
@@ -64,8 +66,12 @@ export default function CandidateMatching({ setActiveTab }) {
   };
 
   const handleSelectAllTopThree = () => {
-    const topIds = topThree.map(m => m.candidateId);
-    if (selectedForAssign.length === topIds.length) {
+    const topIds = topThree
+      .map((m, idx) => m.candidateId || m.id || `CAN-${String(idx + 1).padStart(3, "0")}`)
+      .filter(Boolean);
+
+    const isAllSelected = topIds.length > 0 && topIds.every(id => selectedForAssign.includes(id));
+    if (isAllSelected) {
       setSelectedForAssign([]);
     } else {
       setSelectedForAssign(topIds);
@@ -73,25 +79,26 @@ export default function CandidateMatching({ setActiveTab }) {
   };
 
   const handleConfirmAssignment = async () => {
-    if (selectedForAssign.length === 0) {
+    const validSelected = selectedForAssign.filter(Boolean);
+    if (validSelected.length === 0) {
       alert("Please check at least one candidate before confirming assignment.");
       return;
     }
 
     const jobTitle = selectedJob ? selectedJob.title : selectedJobId;
-    const count = selectedForAssign.length;
+    const count = validSelected.length;
     const proceed = window.confirm(
       `Confirm candidate assignment for ${count} candidate(s) to "${jobTitle}"?\n\nBusiness Rule Enforcement:\nOnce confirmed, these candidates will be marked as Assigned and excluded from every subsequent job requisition.`
     );
 
     if (!proceed) return;
 
-    await confirmAssignment(selectedJobId, selectedForAssign);
+    await confirmAssignment(selectedJobId, validSelected);
 
     setAssignmentNotice({
       count,
       jobTitle,
-      assignedIds: [...selectedForAssign]
+      assignedIds: [...validSelected]
     });
 
     setSelectedForAssign([]);
@@ -268,13 +275,14 @@ export default function CandidateMatching({ setActiveTab }) {
       ) : (
         <div className="top-three-cards-grid">
           {topThree.map((match, index) => {
-            const isChecked = selectedForAssign.includes(match.candidateId);
+            const candidateId = match.candidateId || match.id || `CAN-${String(index + 1).padStart(3, "0")}`;
+            const isChecked = Boolean(candidateId && selectedForAssign.includes(candidateId));
             const rankLabel = `#${index + 1}`;
             const rankClass = index === 0 ? "gold" : index === 1 ? "silver" : "bronze";
 
             return (
               <div 
-                key={match.candidateId} 
+                key={candidateId} 
                 className={`spotlight-card ${rankClass} ${isChecked ? "card-checked" : ""}`}
               >
                 {/* Header */}
@@ -302,7 +310,7 @@ export default function CandidateMatching({ setActiveTab }) {
                       )}
                     </div>
                     <h4 className="candidate-header-name">{match.candidateName}</h4>
-                    <span className="candidate-code-id">{match.candidateId}</span>
+                    <span className="candidate-code-id">{candidateId}</span>
                   </div>
 
                   <div className="score-meter-box" title={`${match.totalScore} / 100 points`}>
@@ -383,17 +391,17 @@ export default function CandidateMatching({ setActiveTab }) {
                 <div className="card-actions-row">
                   <div 
                     className={`selection-checkbox-bar ${isChecked ? "checked" : ""}`}
-                    onClick={(e) => toggleSelectCandidate(match.candidateId, e)}
+                    onClick={(e) => toggleSelectCandidate(candidateId, e)}
                   >
                     <input
                       type="checkbox"
-                      id={`check-${match.candidateId}`}
+                      id={`check-${candidateId}`}
                       checked={isChecked}
-                      onChange={(e) => toggleSelectCandidate(match.candidateId, e)}
+                      onChange={(e) => toggleSelectCandidate(candidateId, e)}
                       className="checkbox-custom"
                     />
                     <label 
-                      htmlFor={`check-${match.candidateId}`}
+                      htmlFor={`check-${candidateId}`}
                       className="checkbox-label-text"
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -405,7 +413,7 @@ export default function CandidateMatching({ setActiveTab }) {
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleAssignSingle(match.candidateId, match.candidateName);
+                      handleAssignSingle(candidateId, match.candidateName);
                     }}
                     className="btn-assign-single-card"
                     title={`Assign only ${match.candidateName} to this role`}
@@ -452,61 +460,64 @@ export default function CandidateMatching({ setActiveTab }) {
                 </tr>
               </thead>
               <tbody>
-                {remaining.map((candMatch, idx) => (
-                  <tr key={candMatch.candidateId}>
-                    <td>
-                      <span className="rank-ordinal-tag">#{idx + 4}</span>
-                    </td>
-                    <td>
-                      <span className="id-code-badge">{candMatch.candidateId}</span>
-                    </td>
-                    <td className="font-semibold">{candMatch.candidateName}</td>
-                    <td>
-                      <span className="score-table-pill">
-                        {candMatch.totalScore}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="skills-wrap-sm">
-                        {candMatch.breakdown.requiredSkills.matched.map((s, sIdx) => (
-                          <span key={sIdx} className="skill-pill-tag matched">{s}</span>
-                        ))}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="skills-wrap-sm">
-                        {candMatch.breakdown.requiredSkills.missing.map((s, sIdx) => (
-                          <span key={sIdx} className="skill-pill-tag missing">{s}</span>
-                        ))}
-                      </div>
-                    </td>
-                    <td>{candMatch.breakdown.experience.years} yrs</td>
-                    <td>
-                      <button
-                        type="button"
-                        onClick={() => handleAssignSingle(candMatch.candidateId, candMatch.candidateName)}
-                        style={{
-                          fontSize: '0.72rem',
-                          padding: '0.35rem 0.65rem',
-                          borderRadius: '6px',
-                          background: '#ecfdf5',
-                          border: '1px solid #a7f3d0',
-                          color: '#065f46',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.3rem',
-                          whiteSpace: 'nowrap'
-                        }}
-                        title={`Assign ${candMatch.candidateName} to ${selectedJob?.title || selectedJobId}`}
-                      >
-                        <UserCheck size={12} />
-                        <span>Assign</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {remaining.map((candMatch, idx) => {
+                  const candidateId = candMatch.candidateId || candMatch.id || `CAN-${String(idx + 4).padStart(3, "0")}`;
+                  return (
+                    <tr key={candidateId}>
+                      <td>
+                        <span className="rank-ordinal-tag">#{idx + 4}</span>
+                      </td>
+                      <td>
+                        <span className="id-code-badge">{candidateId}</span>
+                      </td>
+                      <td className="font-semibold">{candMatch.candidateName}</td>
+                      <td>
+                        <span className="score-table-pill">
+                          {candMatch.totalScore}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="skills-wrap-sm">
+                          {candMatch.breakdown.requiredSkills.matched.map((s, sIdx) => (
+                            <span key={sIdx} className="skill-pill-tag matched">{s}</span>
+                          ))}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="skills-wrap-sm">
+                          {candMatch.breakdown.requiredSkills.missing.map((s, sIdx) => (
+                            <span key={sIdx} className="skill-pill-tag missing">{s}</span>
+                          ))}
+                        </div>
+                      </td>
+                      <td>{candMatch.breakdown.experience.years} yrs</td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => handleAssignSingle(candidateId, candMatch.candidateName)}
+                          style={{
+                            fontSize: '0.72rem',
+                            padding: '0.35rem 0.65rem',
+                            borderRadius: '6px',
+                            background: '#ecfdf5',
+                            border: '1px solid #a7f3d0',
+                            color: '#065f46',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            whiteSpace: 'nowrap'
+                          }}
+                          title={`Assign ${candMatch.candidateName} to ${selectedJob?.title || selectedJobId}`}
+                        >
+                          <UserCheck size={12} />
+                          <span>Assign</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

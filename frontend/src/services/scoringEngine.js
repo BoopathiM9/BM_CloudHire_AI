@@ -112,9 +112,13 @@ export function evaluateCandidateMatch(candidate, job) {
     (matchedRequired.length === reqSkills.length ? `Complete technical alignment with strong delivery evidence in ${matchedProjectsList[0] || 'relevant projects'}.` :
       `Partially qualified with strength in ${matchedRequired.slice(0, 2).join(', ')}, but requires verification on ${missingRequired.slice(0, 2).join(', ')}.`);
 
+  const candidateId = candidate.candidateId || candidate.id || (candidate.PK ? candidate.PK.replace("CANDIDATE#", "") : "CAN-000");
+  const resolvedJobId = job.jobId || job.id || (job.PK ? job.PK.replace("JOB#", "") : "JOB-101");
+
   return {
-    jobId: job.id,
-    candidateId: candidate.id,
+    jobId: resolvedJobId,
+    candidateId,
+    id: candidateId,
     candidateName: candidate.name,
     totalScore,
     breakdown: {
