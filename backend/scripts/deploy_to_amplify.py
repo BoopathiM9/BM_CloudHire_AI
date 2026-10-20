@@ -38,7 +38,7 @@ def build_frontend():
     node_path = r"C:\Program Files\nodejs"
     if node_path not in env.get("PATH", ""):
         env["PATH"] = node_path + ";" + env.get("PATH", "")
-    env["NODE_OPTIONS"] = "--max-old-space-size=4096"
+    env.pop("NODE_OPTIONS", None)
     cmd = "cmd /c \"npm run build\""
     res = subprocess.run(cmd, cwd=frontend_dir, shell=True, capture_output=True, text=True, env=env)
     if res.returncode != 0:
